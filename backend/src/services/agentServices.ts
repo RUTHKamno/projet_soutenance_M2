@@ -193,6 +193,18 @@ export function extractAgentOutput(result: any) {
     }
   }
 
+  // ----- Extraction sécurisée de tool_execute_query (SQL) -----
+  const execRaw = toolResults["tool_execute_query"]?.at(-1);
+  let queryResult: { columns: string[]; rows: any[] } | null = null;
+  if (execRaw) {
+    try {
+      const parsed = JSON.parse(execRaw);
+      if (parsed.success) {
+        queryResult = { columns: parsed.columns, rows: parsed.rows };
+      }
+    } catch {}
+  }
+
   // ── Extraction sécurisée du rapport (tool_write_report) ──
   const reportRaw = toolResults["tool_write_report"]?.at(-1);
   let report = null;
@@ -220,6 +232,7 @@ export function extractAgentOutput(result: any) {
       result?.reformulatedQuestion ??
       null,
     userQuestion: result?.data?.userQuestion ?? result?.userQuestion ?? null,
+    queryResult,
   };
 
   console.log("\n=======================================================");

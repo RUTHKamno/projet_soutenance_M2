@@ -6,6 +6,7 @@ import {
 import {
   handleAgentAsk,
   handleAgentResume,
+  handlePublishToSuperset,
 } from "../controllers/agent.controller.js";
 import { getUserHistory } from "../services/chatHistoryService.js";
 
@@ -30,6 +31,8 @@ router.get(
     }
   },
 );
+router.post("/publish-superset", checkAuth, handlePublishToSuperset);
+
 // router.post("/analyze",checkAuth, handleAgentAnalysis);
 
 export default router;

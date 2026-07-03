@@ -290,4 +290,5 @@ export async function listDashboards(): Promise<
     console.log(`  - [${d.id}] ${d.title} (${d.slug})`);
   });
 
-  return dashboard
+  return dashboards;
+}

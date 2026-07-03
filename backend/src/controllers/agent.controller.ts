@@ -15,6 +15,7 @@ import {
 } from "../services/chatHistoryService.js";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
 import { SupersetService } from "../services/supersetService.js";
+import { mapChartTypeToVizKind } from "../services/chartMapping.js";
 
 // ── Requête 1 : lancer l'agent ─────────────────────────────────────────────
 export const handleAgentAsk = async (
@@ -199,39 +200,7 @@ export const handleAgentResume = async (
     // );
 
     const output = extractAgentOutput(result);
-
-    // if (!result.isBlocked && output.chartConfig && result.lastSqlJson) {
-    //   try {
-    //     // Récupération de l'ID du Dashboard Superset par défaut depuis les variables d'environnement
-    //     const defaultDashboardId = parseInt(
-    //       process.env.SUPERSET_DEFAULT_DASHBOARD_ID || "1",
-    //       10,
-    //     );
-
-    //     console.log(
-    //       `[Superset Auto-Inject] 📌 Graphique détecté. Injection automatique dans le Dashboard Superset ID: ${defaultDashboardId}...`,
-    //     );
-
-    //     await SupersetService.addChartToDashboard({
-    //       dashboardId: defaultDashboardId,
-    //       chartTitle:
-    //         output.chartConfig.title?.text ||
-    //         "Graphique généré par l'Agent Assistant",
-    //       sqlQuery: result.validatedSqlQuery || result.lastSqlJson,
-    //       chartType: "dist_bar", // Ajustable en fonction du type détecté dans output.chartConfig.series[0].type
-    //     });
-
-    //     console.log(
-    //       "[Superset Auto-Inject] 🎉 Graphique injecté avec succès et synchronisé !",
-    //     );
-    //   } catch (supersetError: any) {
-    //     // On log l'erreur mais on ne bloque pas la réponse de l'agent pour l'utilisateur
-    //     console.error(
-    //       "[Superset Auto-Inject] ❌ Échec de l'écriture dans Superset :",
-    //       supersetError.message,
-    //     );
-    //   }
-    // }
+    console.log("[Output]", output);
 
     if (
       result.isBlocked === true &&
@@ -239,6 +208,62 @@ export const handleAgentResume = async (
     ) {
       output.summary =
         "Désolé, cette demande a été rejetée par le système d'audit car elle est hors-sujet et n'interroge pas le Data Warehouse.";
+    }
+
+    // 📌 AUTOMATISATION SUPERSET 📌
+    let supersetChartId = null;
+    let supersetPublishStatus = null;
+
+    if (!result.isBlocked && output.chartConfig && output.queryResult) {
+      try {
+        console.log(
+          "[Superset Auto] 🚀 Graphique détecté. Initialisation de la publication automatique...",
+        );
+
+        const DEFAULT_DASHBOARD_ID = 1; // Ton dashboard cible par défaut
+
+        // Inférence des colonnes à la volée
+        const { dimensionColumn, metricColumn } = inferColumns(
+          output.queryResult.columns,
+          output.queryResult.rows[0],
+        );
+
+        console.log(
+          `[Superset Auto] 📊 Dimension: "${dimensionColumn}" | Métrique: "${metricColumn}"`,
+        );
+
+        // Publication directe sans attendre d'action utilisateur
+        const chartResult = await SupersetService.addChartToDashboard({
+          dashboardId: DEFAULT_DASHBOARD_ID,
+          chartTitle:
+            output.chartConfig?.title?.text ||
+            `Graphique Agent - Thread ${thread_id.substring(0, 8)}`,
+          sqlQuery: result.validatedSqlQuery || result.lastSqlJson,
+          vizKind: mapChartTypeToVizKind(output.chartConfig),
+          columns: output.queryResult.columns,
+          metricColumn,
+          dimensionColumn,
+        });
+
+        supersetChartId = chartResult?.id;
+        supersetPublishStatus = {
+          success: true,
+          message: `Publié automatiquement dans le dashboard #${DEFAULT_DASHBOARD_ID}`,
+        };
+        console.log(
+          `[Superset Auto] 🎉 Succès ! Graphique inséré avec l'ID Superset : ${supersetChartId}`,
+        );
+      } catch (supersetErr: any) {
+        // Sécurisé par un bloc try/catch pour que si Superset crash, le message soit quand même renvoyé/sauvegardé
+        console.error(
+          "[Superset Auto] 🚨 Échec de la publication automatique :",
+          supersetErr.message,
+        );
+        supersetPublishStatus = {
+          success: false,
+          message: `Échec publication auto: ${supersetErr.message}`,
+        };
+      }
     }
 
     // ── Sauvegarder la réponse finale de l'agent ──────────────────────────
@@ -273,5 +298,180 @@ export const handleAgentResume = async (
   } catch (err: any) {
     console.error("[API /resume] 🚨 Erreur :", err.message);
     res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// ------ Intégration des charts dans le dashboard superset (Optionnel) ------
+function inferColumns(columns: string[], sampleRow: Record<string, unknown>) {
+  const dimensionColumn =
+    columns.find((c) => typeof sampleRow[c] !== "number") ?? columns[0];
+  const metricColumn =
+    columns.find((c) => typeof sampleRow[c] === "number") ??
+    columns[1] ??
+    columns[0];
+  return { dimensionColumn, metricColumn };
+}
+
+export const handlePublishToSuperset = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  const { thread_id, dashboardId, chartTitle } = req.body;
+
+  console.log("\n=== [Superset] Début handlePublishToSuperset ===");
+  console.log("👉 Thread ID reçu :", thread_id);
+  console.log("👉 Dashboard ID ciblé :", dashboardId);
+
+  if (!thread_id || !dashboardId) {
+    console.warn("❌ Paramètres manquants dans la requête.");
+    res
+      .status(400)
+      .json({ success: false, error: "thread_id et dashboardId requis." });
+    return;
+  }
+
+  const config = { configurable: { thread_id } };
+
+  try {
+    let chartConfig: any = null;
+    let queryResult: any = null;
+    let sqlQuery: string = "";
+
+    // ── PLAN A : Tentative de récupération depuis LangGraph ─────────────────
+    console.log("🔄 Plan A : Lecture de l'état LangGraph...");
+    const snapshot = await compiledGraph.getState(config);
+    const result = snapshot?.values || {};
+
+    console.log(
+      "🔍 Snapshot values de LangGraph :",
+      JSON.stringify(result, null, 2),
+    );
+
+    if (result && Object.keys(result).length > 0) {
+      console.log("✅ État LangGraph trouvé. Extraction des configurations...");
+      const output = extractAgentOutput(result);
+      chartConfig = output.chartConfig;
+      queryResult = output.queryResult;
+      sqlQuery = result.validatedSqlQuery || result.lastSqlJson;
+    }
+
+    // ── PLAN B : Secours via l'historique des messages (BDD) ────────────────
+    if (!chartConfig || !queryResult) {
+      console.log(
+        `⚠️ Plan A échoué (État LangGraph vide). Bascule sur le Plan B (Historique BDD)...`,
+      );
+
+      // Récupération de l'historique complet pour ce thread
+      const messages = await getThreadContext(thread_id);
+      console.log(
+        `📋 Nombre de messages récupérés dans l'historique : ${messages?.length || 0}`,
+      );
+
+      if (messages && messages.length > 0) {
+        // Log du dernier message pour voir sa structure brute
+        console.log(
+          "🔍 Structure du dernier message de l'historique :",
+          JSON.stringify(messages[messages.length - 1], null, 2),
+        );
+
+        // Recherche du dernier message assistant contenant un graphique ou un rapport
+        const lastAssistantMessage = [...messages]
+          .reverse()
+          .find(
+            (msg) =>
+              msg.role === "assistant" && (msg.chartConfig || msg.report),
+          );
+
+        if (lastAssistantMessage) {
+          console.log(
+            "🎯 Message de secours assistant trouvé ! ID:",
+            lastAssistantMessage || "N/A",
+          );
+          console.log(
+            "   -> chartConfig présent :",
+            !!lastAssistantMessage.chartConfig,
+          );
+          console.log("   -> report présent :", !!lastAssistantMessage.report);
+
+          chartConfig = lastAssistantMessage.chartConfig;
+
+          // Extraction selon la structure réelle stockée dans ton service d'historique
+          queryResult =
+            lastAssistantMessage.report?.queryResult ||
+            lastAssistantMessage.chartConfig?.queryResult;
+          sqlQuery =
+            lastAssistantMessage.report?.sqlQuery ||
+            lastAssistantMessage.chartConfig?.sql;
+        } else {
+          console.warn(
+            "❌ Aucun message de l'assistant avec un chartConfig ou report n'a été trouvé dans cet historique.",
+          );
+        }
+      }
+    }
+
+    // ── VALIDATION FINALE ──────────────────────────────────────────────────
+    console.log("=== Analyse des données prêtes pour Superset ===");
+    console.log("👉 chartConfig final disponible :", !!chartConfig);
+    console.log("👉 queryResult final disponible :", !!queryResult);
+    console.log(
+      "👉 Requête SQL finale extraite :",
+      sqlQuery ? "OUI (longueur: " + sqlQuery.length + ")" : "NON",
+    );
+
+    if (!chartConfig || !queryResult) {
+      console.error(
+        "❌ Échec des plans A et B : Données graphiques introuvables.",
+      );
+      res.status(400).json({
+        success: false,
+        error:
+          "Aucun graphique ou résultat SQL disponible en mémoire ou dans l'historique de ce thread.",
+      });
+      return;
+    }
+
+    // Inférence des colonnes pour le jeu de données Superset
+    console.log("🔄 Inférence des colonnes en cours...");
+    const { dimensionColumn, metricColumn } = inferColumns(
+      queryResult.columns,
+      queryResult.rows[0],
+    );
+    console.log(
+      `📊 Colonnes inférées -> Dimension: "${dimensionColumn}", Métrique: "${metricColumn}"`,
+    );
+
+    // Publication finale
+    console.log(
+      "🚀 Envoi des paramètres à SupersetService.addChartToDashboard...",
+    );
+    const chartResult = await SupersetService.addChartToDashboard({
+      dashboardId: parseInt(dashboardId, 10),
+      chartTitle:
+        chartTitle ||
+        chartConfig?.title?.text ||
+        "Graphique généré par l'Agent",
+      sqlQuery: sqlQuery,
+      vizKind: mapChartTypeToVizKind(chartConfig),
+      columns: queryResult.columns,
+      metricColumn,
+      dimensionColumn,
+    });
+
+    console.log(
+      "🎉 Publication réussie ! Nouveau Chart ID Superset :",
+      chartResult?.id,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Graphique publié avec succès dans Superset.",
+      chartId: chartResult?.id,
+    });
+  } catch (err: any) {
+    console.error("[API /publish-superset] 🚨 Erreur critique :", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    console.log("=== [Superset] Fin handlePublishToSuperset ===\n");
   }
 };

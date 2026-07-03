@@ -1,4 +1,10 @@
 import fetch from "node-fetch";
+import { buildHeaders } from "./supersetClient.js"; // à exporter depuis supersetClient.ts
+import {
+  buildVizParams,
+  SupersetChartCreationResult,
+  SupportedViz,
+} from "../interfaces/superset.interface.js";
 
 // Récupération des configurations depuis les variables d'environnement
 const SUPERSET_URL = process.env.SUPERSET_URL || "http://localhost:8088";
@@ -42,95 +48,151 @@ export const SupersetService = {
   /**
    * Étapes B, C, D : Création du Dataset, du Chart et liaison au Dashboard
    */
+  // async addChartToDashboard({
+  //   dashboardId,
+  //   chartTitle,
+  //   sqlQuery,
+  //   chartType = "dist_bar", // Type de graphique par défaut dans Superset
+  // }: {
+  //   dashboardId: number;
+  //   chartTitle: string;
+  //   sqlQuery: string;
+  //   chartType?: string;
+  // }): Promise<any> {
+  //   try {
+  //     const token = await this.getAccessToken();
+  //     const headers = await buildHeaders();
+
+  //     // 1. Création d'un Dataset virtuel basé sur la requête SQL de l'agent
+  //     const datasetTableName = `agent_query_${Date.now()}`;
+  //     const datasetRes = await fetch(`${SUPERSET_URL}/api/v1/dataset/`, {
+  //       method: "POST",
+  //       headers,
+  //       body: JSON.stringify({
+  //         //   database: SUPERSET_DATABASE_ID,
+  //         database: "dwh",
+  //         table_name: datasetTableName,
+  //         sql: sqlQuery,
+  //       }),
+  //     });
+
+  //     if (!datasetRes.ok) {
+  //       const errData = await datasetRes.json();
+  //       throw new Error(
+  //         `Impossible de créer le Dataset: ${JSON.stringify(errData)}`,
+  //       );
+  //     }
+
+  //     const datasetData = (await datasetRes.json()) as { id: number };
+  //     const datasetId = datasetData.id;
+  //     console.log(
+  //       `[SupersetService] ✅ Dataset virtuel créé avec succès (ID: ${datasetId})`,
+  //     );
+
+  //     // 2. Configuration des paramètres visuels (options de tranche spécifiques à Superset)
+  //     const vizParams = {
+  //       datasource: `${datasetId}__table`,
+  //       viz_type: chartType,
+  //       slice_id: 0,
+  //       granularity_sqla: null,
+  //       time_grain_sqla: null,
+  //       metrics: ["count"], // Ajustable selon la structure de ta donnée
+  //       adhoc_filters: [],
+  //     };
+
+  //     // 3. Création du Chart et association immédiate à l'ID du Dashboard cible
+  //     const chartRes = await fetch(`${SUPERSET_URL}/api/v1/chart/`, {
+  //       method: "POST",
+  //       headers,
+  //       body: JSON.stringify({
+  //         slice_name: chartTitle,
+  //         datasource_id: datasetId,
+  //         datasource_type: "table",
+  //         viz_type: chartType,
+  //         params: JSON.stringify(vizParams),
+  //         dashboards: [dashboardId], // Liaison automatique native !
+  //       }),
+  //     });
+
+  //     if (!chartRes.ok) {
+  //       const errChart = await chartRes.json();
+  //       throw new Error(
+  //         `Impossible de créer le Chart: ${JSON.stringify(errChart)}`,
+  //       );
+  //     }
+
+  //     const chartData = await chartRes.json();
+  //     console.log(
+  //       `[SupersetService] 🎉 Graphique "${chartTitle}" injecté nativement dans le Dashboard ${dashboardId}`,
+  //     );
+
+  //     return chartData;
+  //   } catch (error: any) {
+  //     console.error(
+  //       "[SupersetService] 💥 Échec de l'injection Native Superset:",
+  //       error.message,
+  //     );
+  //     // On log mais on ne bloque pas forcément l'agent si Superset a un souci temporaire
+  //     return null;
+  //   }
+  // },
+
   async addChartToDashboard({
     dashboardId,
     chartTitle,
     sqlQuery,
-    chartType = "dist_bar", // Type de graphique par défaut dans Superset
+    vizKind,
+    columns,
+    metricColumn,
+    dimensionColumn,
   }: {
     dashboardId: number;
     chartTitle: string;
     sqlQuery: string;
-    chartType?: string;
-  }): Promise<any> {
-    try {
-      const token = await this.getAccessToken();
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
+    vizKind: SupportedViz;
+    columns: string[];
+    metricColumn: string;
+    dimensionColumn: string;
+  }): Promise<SupersetChartCreationResult> {
+    // ← type de retour explicite ici
+    const headers = await buildHeaders();
 
-      // 1. Création d'un Dataset virtuel basé sur la requête SQL de l'agent
-      const datasetTableName = `agent_query_${Date.now()}`;
-      const datasetRes = await fetch(`${SUPERSET_URL}/api/v1/dataset/`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          //   database: SUPERSET_DATABASE_ID,
-          database: "dwh",
-          table_name: datasetTableName,
-          sql: sqlQuery,
-        }),
-      });
+    const datasetRes = await fetch(`${SUPERSET_URL}/api/v1/dataset/`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        database: SUPERSET_DATABASE_ID,
+        table_name: `agent_query_${Date.now()}`,
+        sql: sqlQuery,
+        schema: "public",
+      }),
+    });
+    if (!datasetRes.ok) throw new Error(await datasetRes.text());
+    const { id: datasetId } = (await datasetRes.json()) as { id: number };
 
-      if (!datasetRes.ok) {
-        const errData = await datasetRes.json();
-        throw new Error(
-          `Impossible de créer le Dataset: ${JSON.stringify(errData)}`,
-        );
-      }
+    const vizParams = buildVizParams(
+      vizKind,
+      datasetId,
+      columns,
+      metricColumn,
+      dimensionColumn,
+    );
 
-      const datasetData = (await datasetRes.json()) as { id: number };
-      const datasetId = datasetData.id;
-      console.log(
-        `[SupersetService] ✅ Dataset virtuel créé avec succès (ID: ${datasetId})`,
-      );
+    const chartRes = await fetch(`${SUPERSET_URL}/api/v1/chart/`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        slice_name: chartTitle,
+        datasource_id: datasetId,
+        datasource_type: "table",
+        viz_type: vizParams.viz_type,
+        params: JSON.stringify(vizParams),
+        dashboards: [dashboardId],
+      }),
+    });
+    if (!chartRes.ok) throw new Error(await chartRes.text());
 
-      // 2. Configuration des paramètres visuels (options de tranche spécifiques à Superset)
-      const vizParams = {
-        datasource: `${datasetId}__table`,
-        viz_type: chartType,
-        slice_id: 0,
-        granularity_sqla: null,
-        time_grain_sqla: null,
-        metrics: ["count"], // Ajustable selon la structure de ta donnée
-        adhoc_filters: [],
-      };
-
-      // 3. Création du Chart et association immédiate à l'ID du Dashboard cible
-      const chartRes = await fetch(`${SUPERSET_URL}/api/v1/chart/`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          slice_name: chartTitle,
-          datasource_id: datasetId,
-          datasource_type: "table",
-          viz_type: chartType,
-          params: JSON.stringify(vizParams),
-          dashboards: [dashboardId], // Liaison automatique native !
-        }),
-      });
-
-      if (!chartRes.ok) {
-        const errChart = await chartRes.json();
-        throw new Error(
-          `Impossible de créer le Chart: ${JSON.stringify(errChart)}`,
-        );
-      }
-
-      const chartData = await chartRes.json();
-      console.log(
-        `[SupersetService] 🎉 Graphique "${chartTitle}" injecté nativement dans le Dashboard ${dashboardId}`,
-      );
-
-      return chartData;
-    } catch (error: any) {
-      console.error(
-        "[SupersetService] 💥 Échec de l'injection Native Superset:",
-        error.message,
-      );
-      // On log mais on ne bloque pas forcément l'agent si Superset a un souci temporaire
-      return null;
-    }
+    // Cast explicite au lieu de laisser TS inférer {}
+    return (await chartRes.json()) as SupersetChartCreationResult;
   },
 };
