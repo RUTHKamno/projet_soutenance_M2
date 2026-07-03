@@ -1,0 +1,35 @@
+import { Router, Response } from "express";
+import {
+  AuthenticatedRequest,
+  checkAuth,
+} from "../middlewares/auth.middleware.js";
+import {
+  handleAgentAsk,
+  handleAgentResume,
+} from "../controllers/agent.controller.js";
+import { getUserHistory } from "../services/chatHistoryService.js";
+
+const router = Router();
+
+// Endpoint POST pour centraliser les requêtes vers tes moteurs IA
+router.post("/ask", checkAuth, handleAgentAsk);
+router.post("/resume", checkAuth, handleAgentResume);
+
+// GET /api/agent/history
+router.get(
+  "/history",
+  checkAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const history = await getUserHistory(userId);
+      res.json({ messages: history });
+    } catch (err: any) {
+      console.log("Erreur lors de la récupération de l'historique :", err);
+      res.status(500).json({ error: "Impossible de récupérer l'historique." });
+    }
+  },
+);
+// router.post("/analyze",checkAuth, handleAgentAnalysis);
+
+export default router;

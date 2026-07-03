@@ -1,0 +1,961 @@
+{
+  "triplets_extension": [
+    {
+      "id": "triplet_ext_001_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Donne-moi l'historique au jour le jour des fonds mis en place comparés aux retraits.",
+      "sql": "SELECT dt.date_val AS DateOperation, SUM(CASE WHEN flux.type_flux = 'MEP' THEN flux.montant ELSE 0 END) AS Total_MEP, SUM(CASE WHEN flux.type_flux = 'DEC' THEN flux.montant ELSE 0 END) AS Total_Decaisse FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_mep AS date_id, montant_mep AS montant, 'MEP' AS type_flux FROM dwh.fait_mep UNION ALL SELECT date_id_decaissement AS date_id, montant_decaissement AS montant, 'DEC' AS type_flux FROM dwh.fait_decaissements) flux ON dt.date_id = flux.date_id GROUP BY dt.date_val ORDER BY dt.date_val ASC;"
+    },
+    {
+      "id": "triplet_ext_001_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Trace la courbe comparative quotidienne entre les enveloppes de crédit accordées et ce qui a été décaissé.",
+      "sql": "SELECT dt.date_val AS DateOperation, SUM(CASE WHEN flux.type_flux = 'MEP' THEN flux.montant ELSE 0 END) AS Total_MEP, SUM(CASE WHEN flux.type_flux = 'DEC' THEN flux.montant ELSE 0 END) AS Total_Decaisse FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_mep AS date_id, montant_mep AS montant, 'MEP' AS type_flux FROM dwh.fait_mep UNION ALL SELECT date_id_decaissement AS date_id, montant_decaissement AS montant, 'DEC' AS type_flux FROM dwh.fait_decaissements) flux ON dt.date_id = flux.date_id GROUP BY dt.date_val ORDER BY dt.date_val ASC;"
+    },
+    {
+      "id": "triplet_ext_001_3",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Je veux voir le graphique des flux d'entrées et sorties de crédit par jour.",
+      "sql": "SELECT dt.date_val AS DateOperation, SUM(CASE WHEN flux.type_flux = 'MEP' THEN flux.montant ELSE 0 END) AS Total_MEP, SUM(CASE WHEN flux.type_flux = 'DEC' THEN flux.montant ELSE 0 END) AS Total_Decaisse FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_mep AS date_id, montant_mep AS montant, 'MEP' AS type_flux FROM dwh.fait_mep UNION ALL SELECT date_id_decaissement AS date_id, montant_decaissement AS montant, 'DEC' AS type_flux FROM dwh.fait_decaissements) flux ON dt.date_id = flux.date_id GROUP BY dt.date_val ORDER BY dt.date_val ASC;"
+    },
+    {
+      "id": "triplet_ext_001_4",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Comment évoluent les déblocages de prêts par rapport aux signatures de contrats au quotidien ?",
+      "sql": "SELECT dt.date_val AS DateOperation, SUM(CASE WHEN flux.type_flux = 'MEP' THEN flux.montant ELSE 0 END) AS Total_MEP, SUM(CASE WHEN flux.type_flux = 'DEC' THEN flux.montant ELSE 0 END) AS Total_Decaisse FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_mep AS date_id, montant_mep AS montant, 'MEP' AS type_flux FROM dwh.fait_mep UNION ALL SELECT date_id_decaissement AS date_id, montant_decaissement AS montant, 'DEC' AS type_flux FROM dwh.fait_decaissements) flux ON dt.date_id = flux.date_id GROUP BY dt.date_val ORDER BY dt.date_val ASC;"
+    },
+    {
+      "id": "triplet_ext_001_5",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Génère la tendance chronologique de l'activité MEP vs Décaissements.",
+      "sql": "SELECT dt.date_val AS DateOperation, SUM(CASE WHEN flux.type_flux = 'MEP' THEN flux.montant ELSE 0 END) AS Total_MEP, SUM(CASE WHEN flux.type_flux = 'DEC' THEN flux.montant ELSE 0 END) AS Total_Decaisse FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_mep AS date_id, montant_mep AS montant, 'MEP' AS type_flux FROM dwh.fait_mep UNION ALL SELECT date_id_decaissement AS date_id, montant_decaissement AS montant, 'DEC' AS type_flux FROM dwh.fait_decaissements) flux ON dt.date_id = flux.date_id GROUP BY dt.date_val ORDER BY dt.date_val ASC;"
+    },
+    
+    {
+      "id": "triplet_ext_002_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "classement",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Quelles sont les agences bancaires qui affichent le plus gros volume de mise en place ?",
+      "sql": "SELECT agence AS Agence, SUM(montant_mep) AS Volume_MEP FROM dwh.fait_mep GROUP BY agence ORDER BY Volume_MEP DESC;"
+    },
+    {
+      "id": "triplet_ext_002_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "classement",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Classement des points de vente par montant total de prêts mis en place.",
+      "sql": "SELECT agence AS Agence, SUM(montant_mep) AS Volume_MEP FROM dwh.fait_mep GROUP BY agence ORDER BY Volume_MEP DESC;"
+    },
+    {
+      "id": "triplet_ext_002_3",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "classement",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Sors-moi le palmarès de nos agences selon le capital injecté dans les crédits.",
+      "sql": "SELECT agence AS Agence, SUM(montant_mep) AS Volume_MEP FROM dwh.fait_mep GROUP BY agence ORDER BY Volume_MEP DESC;"
+    },
+    {
+      "id": "triplet_ext_002_4",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "classement",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Quelle agence cartonne le plus sur l'octroi de crédit actuellement ?",
+      "sql": "SELECT agence AS Agence, SUM(montant_mep) AS Volume_MEP FROM dwh.fait_mep GROUP BY agence ORDER BY Volume_MEP DESC;"
+    },
+    {
+      "id": "triplet_ext_002_5",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "classement",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Fais un hit-parade des agences par montant de MEP.",
+      "sql": "SELECT agence AS Agence, SUM(montant_mep) AS Volume_MEP FROM dwh.fait_mep GROUP BY agence ORDER BY Volume_MEP DESC;"
+    },
+    {
+      "id": "triplet_ext_003_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Quelle est la part des montants décaissés affectée aux femmes par rapport aux hommes ?",
+      "sql": "SELECT c.genre AS Genre, SUM(f.montant_decaissement) AS Total_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.genre;"
+    },
+    {
+      "id": "triplet_ext_003_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Affiche le camembert de répartition des décaissements selon le sexe du client.",
+      "sql": "SELECT c.genre AS Genre, SUM(f.montant_decaissement) AS Total_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.genre;"
+    },
+    {
+      "id": "triplet_ext_003_3",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Comment se distribue le volume des retraits de prêts entre hommes et femmes ?",
+      "sql": "SELECT c.genre AS Genre, SUM(f.montant_decaissement) AS Total_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.genre;"
+    },
+    {
+      "id": "triplet_ext_003_4",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Donne-moi le ratio de décaissement par genre.",
+      "sql": "SELECT c.genre AS Genre, SUM(f.montant_decaissement) AS Total_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.genre;"
+    },
+    {
+      "id": "triplet_ext_003_5",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Analyse la ventilation des montants de crédits consommés selon les attributs de genre.",
+      "sql": "SELECT c.genre AS Genre, SUM(f.montant_decaissement) AS Total_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.genre;"
+    },
+    {
+      "id": "triplet_ext_004_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Quel a été le volume financier total mis en place à la date du 10 Février 2025 ?",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_004_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Dis-moi combien la banque a injecté en crédit le 10/02/2025.",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_004_3",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Sort le chiffre global de la production de crédit datée du 10 février 2025.",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_004_4",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Point KPI : Montant de MEP enregistré au compteur le 2025-02-10.",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_004_5",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "La somme des mises en place sur la journée spécifique du 10 février 2025 s'élève à combien ?",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_005_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Compare le montant total décaissé par tranche d'âge des clients emprunteurs.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_005_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Mets en parallèle les décaissements de prêts en fonction de l'âge de nos clients.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_005_3",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Est-ce que les jeunes empruntent plus que les seniors ? Sors les montants décaissés par âge.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_005_4",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Donne-moi une confrontation des volumes décaissés indexés sur l'âge du portefeuille.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_005_5",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Rapport analytique des tirages sur crédit segmenté par âge client.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_006_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "table",
+      "question": "Quels sont les clients ayant effectué des décaissements mais dont le dossier indique un défaut de signature ?",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+    },
+    {
+      "id": "triplet_ext_006_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "table",
+      "question": "Sors-moi la liste de contrôle des comptes qui ont retiré des fonds sans signature valide.",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+    },
+    {
+      "id": "triplet_ext_006_3",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "table",
+      "question": "Détecte les anomalies de dossiers : décaissements actifs sur signatures absentes ou invalides.",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+    },
+    {
+      "id": "triplet_ext_006_4",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "table",
+      "question": "Qui a décaissé sans avoir signé correctement son contrat ? Donne-moi leurs contacts.",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+    },
+    {
+      "id": "triplet_ext_006_5",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "table",
+      "question": "Audit des crédits décaissés : lister les codes clients en anomalie de signature.",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+    },
+    {
+      "id": "triplet_ext_007_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Quel est le montant total décaissé par la banque à ce jour ?",
+      "sql": "SELECT SUM(montant_decaissement) AS total_decaisse FROM dwh.fait_decaissements;"
+    },
+    {
+      "id": "triplet_ext_007_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Donne-moi la somme globale de tous les décaissements de prêts.",
+      "sql": "SELECT SUM(montant_decaissement) AS total_decaisse FROM dwh.fait_decaissements;"
+    },
+    {
+      "id": "triplet_ext_008_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Affiche-moi l'évolution mensuelle des montants décaissés pour l'année 2024.",
+      "sql": "SELECT SUBSTRING(CAST(date_id_decaissement AS VARCHAR), 1, 6) AS mois, SUM(montant_decaissement) AS total_montant FROM dwh.fait_decaissements WHERE date_id_decaissement BETWEEN 20240101 AND 20241231 GROUP BY mois ORDER BY mois ASC;"
+    },
+    {
+      "id": "triplet_ext_008_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Comment ont progressé les décaissements mois par mois en 2024 ?",
+      "sql": "SELECT SUBSTRING(CAST(date_id_decaissement AS VARCHAR), 1, 6) AS mois, SUM(montant_decaissement) AS total_montant FROM dwh.fait_decaissements WHERE date_id_decaissement BETWEEN 20240101 AND 20241231 GROUP BY mois ORDER BY mois ASC;"
+    },
+    {
+      "id": "triplet_ext_009_1",
+      "type": "triplet_fewshot",
+      "domaine": "structure",
+      "intention": "classement",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Qui sont les 5 meilleurs gestionnaires en termes de volume décaissé ?",
+      "sql": "SELECT g.nom_gestionnaire, SUM(f.montant_decaissement) AS volume_decaisse FROM dwh.fait_decaissements f JOIN dwh.dim_gestionnaire g ON f.gestionnaire_id = g.id_gestionnaire GROUP BY g.nom_gestionnaire ORDER BY volume_decaisse DESC LIMIT 5;"
+    },
+    {
+      "id": "triplet_ext_009_2",
+      "type": "triplet_fewshot",
+      "domaine": "structure",
+      "intention": "classement",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Sort moi le top 5 des gestionnaires de compte par montant de crédit accordé.",
+      "sql": "SELECT g.nom_gestionnaire, SUM(f.montant_decaissement) AS volume_decaisse FROM dwh.fait_decaissements f JOIN dwh.dim_gestionnaire g ON f.gestionnaire_id = g.id_gestionnaire GROUP BY g.nom_gestionnaire ORDER BY volume_decaisse DESC LIMIT 5;"
+    },
+    {
+      "id": "triplet_ext_010_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Quelle est la répartition des montants décaissés par profil de client ?",
+      "sql": "SELECT profil_client, SUM(montant_decaissement) AS total_profil FROM dwh.fait_decaissements GROUP BY profil_client ORDER BY total_profil DESC;"
+    },
+    {
+      "id": "triplet_ext_010_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Donne-moi la part du volume de crédit pour chaque catégorie socio-professionnelle.",
+      "sql": "SELECT profil_client, SUM(montant_decaissement) AS total_profil FROM dwh.fait_decaissements GROUP BY profil_client ORDER BY total_profil DESC;"
+    },
+    {
+      "id": "triplet_ext_011_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Compare le montant décaissé entre les clients Particuliers et Entreprises par agence.",
+      "sql": "SELECT age AS agence, type_client, SUM(montant_decaissement) AS total_decaisse FROM dwh.fait_decaissements GROUP BY age, type_client ORDER BY agence ASC, total_decaisse DESC;"
+    },
+    {
+      "id": "triplet_ext_012_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien de dossiers de crédits n'ont pas de gestionnaire attitré ?",
+      "sql": "SELECT COUNT(DISTINCT numero_pret) AS prets_sans_gestionnaire FROM dwh.fait_decaissements WHERE gestionnaire_id = -1;"
+    },
+    {
+      "id": "triplet_ext_013_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Je veux voir la dynamique quotidienne de notre production de crédit : affiche-moi le montant des mises en place face aux décaissements jour par jour.",
+      "sql": "SELECT dt.date_val AS DateOperation, SUM(CASE WHEN flux.type_flux = 'MEP' THEN flux.montant ELSE 0 END) AS Total_MEP, SUM(CASE WHEN flux.type_flux = 'DEC' THEN flux.montant ELSE 0 END) AS Total_Decaisse FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_mep AS date_id, montant_mep AS montant, 'MEP' AS type_flux FROM dwh.fait_mep UNION ALL SELECT date_id_decaissement AS date_id, montant_decaissement AS montant, 'DEC' AS type_flux FROM dwh.fait_decaissements) flux ON dt.date_id = flux.date_id GROUP BY dt.date_val ORDER BY dt.date_val ASC;"
+    },
+    {
+      "id": "triplet_ext_014_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Donne-moi l'activité de crédit nette d'aujourd'hui.",
+      "sql": "SELECT (SUM(CASE WHEN flux.type_flux = 'MEP' THEN flux.montant ELSE 0 END) - SUM(CASE WHEN flux.type_flux = 'DEC' THEN flux.montant ELSE 0 END)) AS Variation_Net_Jour FROM (SELECT date_id_mep AS date_id, montant_mep AS montant, 'MEP' AS type_flux FROM dwh.fait_mep UNION ALL SELECT date_id_decaissement AS date_id, montant_decaissement AS montant, 'DEC' AS type_flux FROM dwh.fait_decaissements) flux WHERE flux.date_id = CAST(TO_CHAR(CURRENT_DATE, 'YYYYMMDD') AS INTEGER);"
+    },
+    {
+      "id": "triplet_ext_015_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels sont les clients qui ont décaissé les plus gros montants sur une seule journée ? Sort moi le top 10 détaillé.",
+      "sql": "SELECT flux.cli AS CLI, c.raison_sociale AS NomClient, c.genre AS Genre, dt.date_val AS DateDecaissement, SUM(flux.montant_decaissement) AS Montant_Journalier FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_decaissement AS date_id, cli, montant_decaissement FROM dwh.fait_decaissements) flux ON dt.date_id = flux.date_id LEFT JOIN dwh.dim_client c ON flux.cli = c.cli GROUP BY flux.cli, c.raison_sociale, c.genre, dt.date_val ORDER BY Montant_Journalier DESC LIMIT 10;"
+    },
+    {
+      "id": "triplet_ext_016_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Fais-moi un point quotidien par agence sur le volume de mise en place de crédits.",
+      "sql": "SELECT dt.date_val AS DateOperation, flux.agence AS Agence, SUM(flux.montant_mep) AS Total_MEP FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_mep AS date_id, agence, montant_mep FROM dwh.fait_mep) flux ON dt.date_id = flux.date_id GROUP BY dt.date_val, flux.agence ORDER BY dt.date_val DESC, Total_MEP DESC;"
+    },
+    {
+      "id": "triplet_ext_017_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Dis-moi combien la banque a injecté en crédit le 10/02/2025.",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_017_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Sort le chiffre global de la production de crédit datée du 10 février 2025.",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_017_3",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Point KPI : Montant de MEP enregistré au compteur le 2025-02-10.",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_017_4",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "La somme des mises en place sur la journée spécifique du 10 février 2025 s'élève à combien ?",
+      "sql": "SELECT SUM(montant_mep) AS Total_MEP_du_Jour FROM dwh.fait_mep WHERE date_id_mep = 20250210;"
+    },
+    {
+      "id": "triplet_ext_018_1",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Compare le montant total décaissé par tranche d'âge des clients.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_018_2",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Mets en parallèle les décaissements de prêts en fonction de l'âge de nos clients.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_018_3",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Est-ce que les jeunes empruntent plus que les seniors ? Sors les montants décaissés par âge.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_018_4",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Donne-moi une confrontation des volumes décaissés indexés sur l'âge du portefeuille.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_018_5",
+      "type": "triplet_fewshot",
+      "domaine": "credits",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Rapport analytique des tirages sur crédit segmenté par âge client.",
+      "sql": "SELECT c.age_client AS AgeClient, SUM(f.montant_decaissement) AS Volume_Decaisse FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli GROUP BY c.age_client ORDER BY c.age_client ASC;"
+    },
+    {
+      "id": "triplet_ext_019_1",
+      "type": "triplet_fewshot",
+      "domaine": "gouvernance",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels sont les clients ayant effectué des décaissements mais dont le dossier indique un défaut de signature ?",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.raison_sociale AS NomClient, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
+    },
+    {
+      "id": "triplet_ext_019_2",
+      "type": "triplet_fewshot",
+      "domaine": "gouvernance",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Sors-moi la liste de contrôle des comptes qui ont retiré des fonds sans signature valide.",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.raison_sociale AS NomClient, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
+    },
+    {
+      "id": "triplet_ext_019_3",
+      "type": "triplet_fewshot",
+      "domaine": "gouvernance",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Détecte les anomalies de dossiers : décaissements actifs sur signatures absentes ou invalides.",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.raison_sociale AS NomClient, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
+    },
+    {
+      "id": "triplet_ext_019_4",
+      "type": "triplet_fewshot",
+      "domaine": "gouvernance",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Qui a décaissé sans avoir signé correctement son contrat ? Donne-moi leurs contacts.",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.raison_sociale AS NomClient, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
+    },
+    {
+      "id": "triplet_ext_019_5",
+      "type": "triplet_fewshot",
+      "domaine": "gouvernance",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Audit des crédits décaissés : lister les codes clients en anomalie de signature.",
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.raison_sociale AS NomClient, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
+    },
+
+    {
+      "id": "triplet_ext_020_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Donne-moi la liste des clients qui ont une pièce d'identité expirée et qui ont encore un crédit en cours.",
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, ABS(e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
+    },
+    {
+      "id": "triplet_ext_020_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels emprunteurs actifs ont un document KYC périmé ? Je veux leur nom et leur encours.",
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, ABS(e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
+    },
+    {
+      "id": "triplet_ext_020_3",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Sors-moi le registre de conformité KYC : clients en crédit avec pièce d'identité non valide.",
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, ABS(e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
+    },
+    {
+      "id": "triplet_ext_021_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien de clients en encours de crédit ont une pièce d'identité expirée ?",
+      "sql": "SELECT COUNT(DISTINCT c.cli) AS nb_clients_kyc_expire FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0;"
+    },
+    {
+      "id": "triplet_ext_022_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Quel est le volume d'encours exposé sur des clients dont la pièce d'identité est périmée ?",
+      "sql": "SELECT ABS(SUM(e.encours)) AS encours_kyc_non_conforme FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.etat_piece_identite LIKE '%Expire%';"
+    },
+
+    {
+      "id": "triplet_ext_023_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients n'ont aucun numéro de téléphone enregistré dans notre base ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, c.etat_piece_identite FROM dwh.dim_client c WHERE c.telephone IS NULL ORDER BY c.raison_sociale ASC;"
+    },
+    {
+      "id": "triplet_ext_024_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien de clients sont injoignables parce qu'ils n'ont pas de téléphone dans notre système ?",
+      "sql": "SELECT COUNT(*) AS clients_sans_telephone FROM dwh.dim_client WHERE telephone IS NULL;"
+    },
+    {
+      "id": "triplet_ext_025_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Donne-moi la liste des clients en impayés qui n'ont pas de numéro de téléphone renseigné.",
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.type_client, ABS(e.impayes) AS montant_impaye FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.telephone IS NULL AND e.impayes < 0 ORDER BY montant_impaye DESC;"
+    },
+
+    {
+      "id": "triplet_ext_026_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels sont nos 20 plus gros clients en termes d'encours de crédit ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, ABS(SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
+    },
+    {
+      "id": "triplet_ext_026_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Identifie les clients qui concentrent le plus de risque dans notre portefeuille.",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, ABS(SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
+    },
+    {
+      "id": "triplet_ext_027_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients représentent à eux seuls plus de 80% de notre book de crédit ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, ABS(SUM(e.encours)) AS encours_total, ROUND(ABS(SUM(e.encours)) / SUM(ABS(SUM(e.encours))) OVER () * 100, 2) AS pct_portefeuille FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
+    },
+
+    {
+      "id": "triplet_ext_028_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Donne-moi la liste des clients qui ont à la fois un impayé et un compte d'épargne actif chez nous.",
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, ABS(e.impayes) AS montant_impaye, p.solde AS solde_epargne FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli WHERE e.impayes < 0 AND p.type_cpt = 'Epargne' AND p.solde > 0 ORDER BY montant_impaye DESC;"
+    },
+    {
+      "id": "triplet_ext_028_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien de clients sont en défaut de paiement tout en maintenant une épargne chez nous ?",
+      "sql": "SELECT COUNT(DISTINCT c.cli) AS clients_defaut_avec_epargne FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli WHERE e.impayes < 0 AND p.type_cpt = 'Epargne' AND p.solde > 0;"
+    },
+    {
+      "id": "triplet_ext_028_3",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Quel est le solde épargne cumulé des clients qui sont en même temps en impayé de crédit ?",
+      "sql": "SELECT SUM(DISTINCT p.solde) AS solde_epargne_clients_impayes FROM dwh.fait_encours_credit e JOIN dwh.fait_portefeuille_comptes p ON e.cli = p.cli WHERE e.impayes < 0 AND p.type_cpt = 'Epargne' AND p.solde > 0;"
+    },
+
+    {
+      "id": "triplet_cli_011_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients ont bénéficié de plusieurs crédits successifs ? Donne-moi le nombre de dossiers par client.",
+      "sql": "SELECT m.cli, c.raison_sociale AS NomClient, c.type_client, COUNT(m.numero_pret) AS nb_credits, SUM(m.montant_mep) AS total_accorde FROM dwh.fait_mep m JOIN dwh.dim_client c ON m.cli = c.cli GROUP BY m.cli, c.raison_sociale, c.type_client HAVING COUNT(m.numero_pret) > 1 ORDER BY nb_credits DESC LIMIT 20;"
+    },
+    {
+      "id": "triplet_cli_011_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Sors-moi les clients multi-emprunteurs : ceux qui ont eu plus d'un dossier de prêt chez nous.",
+      "sql": "SELECT m.cli, c.raison_sociale AS NomClient, c.type_client, COUNT(m.numero_pret) AS nb_credits, SUM(m.montant_mep) AS total_accorde FROM dwh.fait_mep m JOIN dwh.dim_client c ON m.cli = c.cli GROUP BY m.cli, c.raison_sociale, c.type_client HAVING COUNT(m.numero_pret) > 1 ORDER BY nb_credits DESC LIMIT 20;"
+    },
+
+    {
+      "id": "triplet_cli_012_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Liste-moi les clients qui ont un compte sous opposition et un crédit actif simultanément.",
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, p.compte AS compte_bloque, o.lib1 AS type_opposition, ABS(e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.dim_opposition o ON p.compte = o.compte JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE p.flag_opposition = 'O' AND e.encours < 0 ORDER BY encours_credit DESC;"
+    },
+    {
+      "id": "triplet_cli_012_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien de clients ont à la fois un compte bloqué par opposition et un encours de crédit ?",
+      "sql": "SELECT COUNT(DISTINCT c.cli) AS clients_opposition_et_credit FROM dwh.dim_client c JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE p.flag_opposition = 'O' AND e.encours < 0;"
+    },
+
+    {
+      "id": "triplet_cli_013_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels sont les clients sans aucun mouvement sur leurs comptes depuis plus de 6 mois ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, p.age AS agence, p.type_cpt, p.solde FROM dwh.fait_portefeuille_comptes p JOIN dwh.dim_client c ON p.cli = c.cli WHERE p.infos_complementaire LIKE '%180%' OR p.infos_complementaire LIKE '%360%' OR p.infos_complementaire = 'Mvt crediteur Inexistant' ORDER BY p.solde DESC;"
+    },
+    {
+      "id": "triplet_cli_013_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Quel est le solde total immobilisé dans les comptes dormants de nos clients ?",
+      "sql": "SELECT SUM(p.solde) AS solde_comptes_dormants FROM dwh.fait_portefeuille_comptes p WHERE p.infos_complementaire IS NOT NULL AND p.solde > 0;"
+    },
+    {
+      "id": "triplet_cli_013_3",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Par agence, combien de clients ont des comptes totalement inactifs ?",
+      "sql": "SELECT p.age AS agence, COUNT(DISTINCT p.cli) AS nb_clients_inactifs FROM dwh.fait_portefeuille_comptes p WHERE p.infos_complementaire = 'Mvt crediteur Inexistant' GROUP BY p.age ORDER BY nb_clients_inactifs DESC;"
+    },
+
+    {
+      "id": "triplet_cli_014_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Qui sont les clients avec le plus d'ancienneté dans notre base et quel est leur niveau d'engagement actuel ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.date_naissance, c.age_client, c.type_client, COUNT(DISTINCT p.compte) AS nb_comptes, ABS(SUM(e.encours)) AS encours_total FROM dwh.dim_client c LEFT JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli LEFT JOIN dwh.fait_encours_credit e ON c.cli = e.cli GROUP BY c.cli, c.raison_sociale, c.date_naissance, c.age_client, c.type_client ORDER BY c.date_naissance ASC NULLS LAST LIMIT 20;"
+    },
+
+    {
+      "id": "triplet_cli_015_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Quelle est la répartition de nos clients par profil réglementaire ?",
+      "sql": "SELECT pr.libelle AS profil, COUNT(DISTINCT cp.cli) AS nb_clients FROM dwh.dim_cli_profil cp JOIN dwh.dim_profil pr ON cp.pro = pr.pro GROUP BY pr.libelle ORDER BY nb_clients DESC;"
+    },
+    {
+      "id": "triplet_cli_015_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Ventile notre base clients par catégorie : personnel de la banque, apparentés et clientèle classique.",
+      "sql": "SELECT pr.apparente AS statut_apparente, COUNT(DISTINCT cp.cli) AS nb_clients FROM dwh.dim_cli_profil cp JOIN dwh.dim_profil pr ON cp.pro = pr.pro GROUP BY pr.apparente ORDER BY nb_clients DESC;"
+    },
+
+    {
+      "id": "triplet_cli_016_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients ont un encours de crédit mais dont le compte courant affiche un solde créditeur insuffisant pour couvrir une échéance ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, p.solde AS solde_compte_courant, d.montant_echeance, ABS(e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.dim_dossier_credit d ON c.cli = d.cli WHERE p.type_cpt IN ('Salaries/Pensionnes', 'E/se') AND p.solde < d.montant_echeance AND e.encours < 0 ORDER BY p.solde ASC LIMIT 30;"
+    },
+    {
+      "id": "triplet_cli_016_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien de clients emprunteurs n'ont pas les fonds nécessaires sur leur compte pour honorer leur prochaine échéance ?",
+      "sql": "SELECT COUNT(DISTINCT c.cli) AS clients_solde_insuffisant FROM dwh.dim_client c JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.dim_dossier_credit d ON c.cli = d.cli WHERE p.solde < d.montant_echeance AND e.encours < 0;"
+    },
+
+    {
+      "id": "triplet_cli_017_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Donne-moi la liste des clients apparentés qui ont un crédit en cours avec leur montant d'encours.",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, pr.libelle AS profil, ABS(e.encours) AS encours_actuel, e.type_encours FROM dwh.dim_client c JOIN dwh.dim_cli_profil cp ON c.cli = cp.cli JOIN dwh.dim_profil pr ON cp.pro = pr.pro JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE pr.apparente = 'Oui' AND e.encours < 0 ORDER BY encours_actuel DESC;"
+    },
+    {
+      "id": "triplet_cli_017_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Quel est l'encours total accordé au personnel interne et aux clients apparentés à la banque ?",
+      "sql": "SELECT ABS(SUM(e.encours)) AS encours_apparentes FROM dwh.fait_encours_credit e JOIN dwh.dim_cli_profil cp ON e.cli = cp.cli JOIN dwh.dim_profil pr ON cp.pro = pr.pro WHERE pr.apparente = 'Oui';"
+    },
+
+    {
+      "id": "triplet_cli_018_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients ont des impayés classés en créances irrécouvrables ? Donne-moi leurs coordonnées et le montant.",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, e.age AS agence, ABS(e.creances_irrecouvrables) AS montant_irrecouvrable FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE e.creances_irrecouvrables < 0 ORDER BY montant_irrecouvrable DESC;"
+    },
+    {
+      "id": "triplet_cli_018_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Quel est le montant total que nous risquons de passer en perte sur les créances irrécouvrables ?",
+      "sql": "SELECT ABS(SUM(creances_irrecouvrables)) AS total_risque_perte FROM dwh.fait_encours_credit WHERE creances_irrecouvrables < 0;"
+    },
+    {
+      "id": "triplet_cli_018_3",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Par agence, quel est le montant des créances irrécouvrables à risque de passage en perte ?",
+      "sql": "SELECT age AS agence, ABS(SUM(creances_irrecouvrables)) AS montant_irrecouvrable FROM dwh.fait_encours_credit WHERE creances_irrecouvrables < 0 GROUP BY age ORDER BY montant_irrecouvrable DESC;"
+    },
+
+    {
+      "id": "triplet_cli_019_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels sont les clients dont le crédit arrive à échéance finale dans les 30 prochains jours ?",
+      "sql": "SELECT d.eve AS numero_pret, c.cli, c.raison_sociale AS NomClient, c.telephone, d.derniere_echeance, d.montant_echeance, d.montant_mep FROM dwh.dim_dossier_credit d JOIN dwh.dim_client c ON d.cli = c.cli WHERE d.derniere_echeance BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days' ORDER BY d.derniere_echeance ASC;"
+    },
+    {
+      "id": "triplet_cli_019_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Dresse-moi la liste des clients à relancer ce mois : ceux dont le dernier remboursement est imminent.",
+      "sql": "SELECT d.eve AS numero_pret, c.cli, c.raison_sociale AS NomClient, c.telephone, d.derniere_echeance, d.montant_echeance FROM dwh.dim_dossier_credit d JOIN dwh.dim_client c ON d.cli = c.cli WHERE d.derniere_echeance BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days' ORDER BY d.derniere_echeance ASC;"
+    },
+
+    {
+      "id": "triplet_cli_020_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients de type Entreprise ont un encours de crédit supérieur à 50 millions de FCFA ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, e.age AS agence, ABS(SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.type_client = 'E/se' GROUP BY c.cli, c.raison_sociale, e.age HAVING ABS(SUM(e.encours)) > 50000000 ORDER BY encours_total DESC;"
+    },
+    {
+      "id": "triplet_cli_020_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien d'entreprises clientes ont un encours supérieur à 50 millions ?",
+      "sql": "SELECT COUNT(DISTINCT e.cli) AS nb_entreprises_gros_encours FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.type_client = 'E/se' GROUP BY e.cli HAVING ABS(SUM(e.encours)) > 50000000;"
+    },
+
+    {
+      "id": "triplet_cli_021_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients domiciliés chez un organisme précis comme CAMTEL ont un crédit en cours ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, o.organisme AS employeur, c.telephone, ABS(e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.dim_organisme o ON c.cli = o.cli JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE o.organisme ILIKE '%CAMTEL%' AND e.encours < 0 ORDER BY encours_credit DESC;"
+    },
+    {
+      "id": "triplet_cli_021_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "comparaison",
+      "visualisation": "echarts_timeseries_bar",
+      "question": "Compare l'encours de crédit par organisme employeur pour les 10 plus représentés.",
+      "sql": "SELECT o.organisme, COUNT(DISTINCT e.cli) AS nb_emprunteurs, ABS(SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_organisme o ON e.cli = o.cli WHERE e.encours < 0 GROUP BY o.organisme ORDER BY encours_total DESC LIMIT 10;"
+    },
+    {
+      "id": "triplet_cli_021_3",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "repartition",
+      "visualisation": "pie",
+      "question": "Quelle est la répartition de notre encours crédit selon l'organisme employeur du client ?",
+      "sql": "SELECT o.organisme, ABS(SUM(e.encours)) AS encours_organisme FROM dwh.fait_encours_credit e JOIN dwh.dim_organisme o ON e.cli = o.cli WHERE e.encours < 0 GROUP BY o.organisme ORDER BY encours_organisme DESC LIMIT 10;",
+      "roles_autorises": ["direction_generale", "analyste"]
+    },
+
+    {
+      "id": "triplet_cli_022_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients ont un contentieux actif et quel gestionnaire en est responsable ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, g.nom_gestionnaire AS gestionnaire, ABS(e.creances_contentieuses) AS montant_contentieux, e.age AS agence FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli JOIN dwh.dim_gestionnaire g ON e.gestionnaire_id = g.id_gestionnaire WHERE e.creances_contentieuses < 0 ORDER BY montant_contentieux DESC;"
+    },
+    {
+      "id": "triplet_cli_022_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Quel est le montant total des créances actuellement en phase contentieuse ?",
+      "sql": "SELECT ABS(SUM(creances_contentieuses)) AS total_contentieux FROM dwh.fait_encours_credit WHERE creances_contentieuses < 0;"
+    },
+
+    {
+      "id": "triplet_cli_023_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels sont les nouveaux clients acquis ce trimestre qui ont déjà souscrit un crédit ?",
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, m.agence, m.montant_mep, m.type_financement FROM dwh.fait_mep m JOIN dwh.dim_client c ON m.cli = c.cli JOIN dwh.dim_temps dt ON m.date_id_mep = dt.date_id WHERE dt.annee = EXTRACT(YEAR FROM CURRENT_DATE) AND dt.trimestre = EXTRACT(QUARTER FROM CURRENT_DATE) ORDER BY m.montant_mep DESC;"
+    },
+    {
+      "id": "triplet_cli_023_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien de clients distincts ont obtenu un premier crédit ce trimestre ?",
+      "sql": "SELECT COUNT(DISTINCT m.cli) AS nouveaux_emprunteurs_trimestre FROM dwh.fait_mep m JOIN dwh.dim_temps dt ON m.date_id_mep = dt.date_id WHERE dt.annee = EXTRACT(YEAR FROM CURRENT_DATE) AND dt.trimestre = EXTRACT(QUARTER FROM CURRENT_DATE);"
+    },
+
+    {
+      "id": "triplet_cli_024_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "classement",
+      "visualisation": "table",
+      "question": "Quels clients cumulent impayés ET compte sous opposition ? Ce sont nos cas les plus critiques.",
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, ABS(e.impayes) AS montant_impaye, o.lib1 AS type_opposition, o.ddeb AS debut_opposition FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.dim_opposition o ON p.compte = o.compte WHERE e.impayes < 0 AND p.flag_opposition = 'O' ORDER BY montant_impaye DESC;"
+    },
+    {
+      "id": "triplet_cli_024_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "valeur_unique",
+      "visualisation": "big_number_total",
+      "question": "Combien de clients cumulent à la fois un impayé de crédit et un compte bloqué par opposition judiciaire ?",
+      "sql": "SELECT COUNT(DISTINCT c.cli) AS clients_critiques FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli WHERE e.impayes < 0 AND p.flag_opposition = 'O';"
+    },
+
+    {
+      "id": "triplet_cli_025_1",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Montre-moi l'évolution mensuelle du nombre de nouveaux emprunteurs sur les 24 derniers mois.",
+      "sql": "SELECT dt.annee, dt.mois, dt.libelle_mois, COUNT(DISTINCT m.cli) AS nb_emprunteurs FROM dwh.fait_mep m JOIN dwh.dim_temps dt ON m.date_id_mep = dt.date_id WHERE dt.date_id >= CAST(TO_CHAR(CURRENT_DATE - INTERVAL '24 months', 'YYYYMMDD') AS INTEGER) GROUP BY dt.annee, dt.mois, dt.libelle_mois ORDER BY dt.annee ASC, dt.mois ASC;"
+    },
+    {
+      "id": "triplet_cli_025_2",
+      "type": "triplet_fewshot",
+      "domaine": "client",
+      "intention": "evolution_temporelle",
+      "visualisation": "echarts_timeseries_line",
+      "question": "Est-ce que notre base de clients emprunteurs croît ou stagne ? Sors-moi la tendance sur 2 ans.",
+      "sql": "SELECT dt.annee, dt.mois, dt.libelle_mois, COUNT(DISTINCT m.cli) AS nb_emprunteurs FROM dwh.fait_mep m JOIN dwh.dim_temps dt ON m.date_id_mep = dt.date_id WHERE dt.date_id >= CAST(TO_CHAR(CURRENT_DATE - INTERVAL '24 months', 'YYYYMMDD') AS INTEGER) GROUP BY dt.annee, dt.mois, dt.libelle_mois ORDER BY dt.annee ASC, dt.mois ASC;"
+    }
+  ]
+}

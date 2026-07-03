@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext", // permet à typescript de comprendre et de parcourir les fichiers embraqués
+    "moduleResolution": "NodeNext", // <-- C'est cette ligne qui corrige l'erreur
+    "esModuleInterop": true,
+    "types": ["node"] // <-- Ajoutez cette ligne ici
+
+  }
+}

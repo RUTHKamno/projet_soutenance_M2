@@ -1,0 +1,77 @@
+{
+  "roles": {
+    "direction_generale": {
+      "tables_autorisees": [
+        "dwh.fait_encours_credit",
+        "dwh.fait_mep",
+        "dwh.fait_decaissements",
+        "dwh.fait_portefeuille_comptes",
+        "dwh.dim_client",
+        "dwh.dim_gestionnaire",
+        "dwh.dim_agence",
+        "dwh.dim_produit",
+        "dwh.dim_dossier_credit",
+        "dwh.dim_profil",
+        "dwh.dim_opposition",
+        "dwh.dim_organisme"
+      ],
+      "colonnes_interdites": [],
+      "filtres_obligatoires": {}
+    },
+    "directeur_agence": {
+      "tables_autorisees": [
+        "dwh.fait_encours_credit",
+        "dwh.fait_mep",
+        "dwh.fait_decaissements",
+        "dwh.fait_portefeuille_comptes",
+        "dwh.dim_client",
+        "dwh.dim_gestionnaire",
+        "dwh.dim_agence"
+      ],
+      "colonnes_interdites": ["teg", "taux_interet"],
+      "filtres_obligatoires": {
+        "dwh.fait_encours_credit": "age = '{agence_utilisateur}'",
+        "dwh.fait_mep": "agence = '{agence_utilisateur}'",
+        "dwh.fait_portefeuille_comptes": "age = '{agence_utilisateur}'"
+      }
+    },
+    "analyste": {
+      "tables_autorisees": [
+        "dwh.fait_encours_credit",
+        "dwh.fait_mep",
+        "dwh.fait_decaissements",
+        "dwh.fait_portefeuille_comptes",
+        "dwh.dim_client",
+        "dwh.dim_gestionnaire",
+        "dwh.dim_agence",
+        "dwh.dim_produit"
+      ],
+      "colonnes_interdites": ["telephone", "teg"],
+      "filtres_obligatoires": {}
+    },
+    "comite_risques": {
+      "tables_autorisees": [
+        "dwh.fait_encours_credit",
+        "dwh.dim_client",
+        "dwh.dim_profil",
+        "dwh.dim_cli_profil",
+        "dwh.dim_opposition",
+        "dwh.dim_dossier_credit"
+      ],
+      "colonnes_interdites": [],
+      "filtres_obligatoires": {}
+    },
+    "gouvernance": {
+      "tables_autorisees": [
+        "dwh.fait_portefeuille_comptes",
+        "dwh.fait_encours_credit",
+        "dwh.dim_client",
+        "dwh.dim_profil",
+        "dwh.dim_cli_profil",
+        "dwh.dim_opposition"
+      ],
+      "colonnes_interdites": [],
+      "filtres_obligatoires": {}
+    }
+  }
+}

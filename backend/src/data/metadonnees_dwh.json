@@ -1,0 +1,497 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "source_systeme": "AMPLITUDE v11.6.1",
+    "schema_dwh": "dwh",
+    "schema_staging": "staging",
+    "dialecte_sql": "PostgreSQL"
+  },
+
+  "tables_dwh": [
+
+    {
+      "id": "tbl_001",
+      "type": "ddl_table",
+      "domaine": "referentiel_temps",
+      "table": "dwh.dim_temps",
+      "source_staging": "generee_algorithmiquement",
+      "description_courte": "Dimension temporelle couvrant toutes les dates de 1900 à 2035.",
+      "description_longue": "Table de dimension temps générée algorithmiquement par la fonction GENERATE_SERIES de PostgreSQL, sans aucune source staging. Elle couvre la plage de dates du 01/01/1900 au 31/12/2035 avec une granularité journalière. Utilisée pour toutes les jointures temporelles dans les tables de faits via la clé date_id de format YYYYMMDD en entier.",
+      "cle_primaire": "date_id",
+      "format_cle": "YYYYMMDD en INTEGER (exemple: 20260101 pour le 1er janvier 2026)",
+      "colonnes": [
+        {"nom": "date_id", "type": "INTEGER", "description": "Clé primaire au format YYYYMMDD. Exemple : 20260518 pour le 18 mai 2026. Utilisée pour toutes les jointures temporelles avec les tables de faits."},
+        {"nom": "date_val", "type": "DATE", "description": "La date réelle au format DATE PostgreSQL."},
+        {"nom": "jour", "type": "INTEGER", "description": "Numéro du jour dans le mois, de 1 à 31."},
+        {"nom": "mois", "type": "INTEGER", "description": "Numéro du mois, de 1 à 12."},
+        {"nom": "libelle_mois", "type": "VARCHAR", "description": "Nom du mois en toutes lettres en français. Exemple : Janvier, Février, Mars."},
+        {"nom": "trimestre", "type": "INTEGER", "description": "Numéro du trimestre, de 1 à 4."},
+        {"nom": "annee", "type": "INTEGER", "description": "Année sur 4 chiffres. Exemple : 2026."},
+        {"nom": "semaine", "type": "INTEGER", "description": "Numéro de la semaine dans l'année selon la norme ISO, de 1 à 53."}
+      ],
+      "index": ["idx_dim_temps_annee", "idx_dim_temps_mois"],
+      "tags": ["temps", "date", "calendrier", "dimension", "temporel"]
+    },
+
+    {
+      "id": "tbl_002",
+      "type": "ddl_table",
+      "domaine": "referentiel_agence",
+      "table": "dwh.dim_agence",
+      "source_staging": "staging.cleaned_bkcom",
+      "description_courte": "Dimension des agences bancaires de l'institution.",
+      "description_longue": "Table de dimension listant toutes les agences bancaires distinctes extraites de la table des comptes clients (bkcom). Chaque agence est identifiée par un code alphanumérique de 5 caractères (champ age dans le système source Amplitude). La table ne contient que les agences ayant au moins un compte bancaire actif dans le système.",
+      "cle_primaire": "age",
+      "colonnes": [
+        {"nom": "age", "type": "VARCHAR(5)", "description": "Code unique de l'agence sur 5 caractères alphanumériques. Correspond au champ age du système AMPLITUDE. Exemple : 09801, 09802. Clé primaire."},
+        {"nom": "libelle", "type": "VARCHAR", "description": "Libellé descriptif de l'agence, construit automatiquement comme 'Agence ' suivi du code. Exemple : 'Agence 09801'."}
+      ],
+      "index": [],
+      "tags": ["agence", "succursale", "geographie", "dimension", "reseau"]
+    },
+
+    {
+      "id": "tbl_003",
+      "type": "ddl_table",
+      "domaine": "referentiel_gestionnaire",
+      "table": "dwh.dim_gestionnaire",
+      "source_staging": "staging.cleaned_bkcli JOIN staging.cleaned_evuti",
+      "description_courte": "Dimension des gestionnaires de comptes actifs.",
+      "description_longue": "Table de dimension des gestionnaires de comptes clients, construite en croisant la table clients (bkcli) pour le code gestionnaire (champ ges) et la table utilisateurs (evuti) pour le nom complet et le code utilisateur. Seuls les gestionnaires non suspendus (sus = 'n') sont intégrés. La clé primaire est une clé de substitution technique auto-incrémentée (id_gestionnaire) car un gestionnaire peut avoir plusieurs codes dans le système source.",
+      "cle_primaire": "id_gestionnaire",
+      "colonnes": [
+        {"nom": "id_gestionnaire", "type": "INTEGER", "description": "Clé de substitution technique auto-incrémentée via ROW_NUMBER. Clé primaire du DWH. À utiliser pour toutes les jointures avec les tables de faits."},
+        {"nom": "code_ges", "type": "VARCHAR", "description": "Code métier du gestionnaire sur 3 caractères, issu du champ ges de la table bkcli du système AMPLITUDE. Exemple : 001, 002, 120. Indexé pour les jointures."},
+        {"nom": "code_cuti", "type": "VARCHAR", "description": "Code utilisateur informatique du gestionnaire sur 10 caractères, issu du champ cuti de la table evuti. Correspond au login du gestionnaire dans le système bancaire."},
+        {"nom": "nom_gestionnaire", "type": "VARCHAR", "description": "Nom complet du gestionnaire tel qu'enregistré dans le système AMPLITUDE, issu du champ lib de la table evuti."}
+      ],
+      "index": ["idx_dim_ges_code", "idx_dim_ges_cuti"],
+      "note_jointure": "Pour joindre avec une table de faits sur le code gestionnaire : LEFT JOIN dwh.dim_gestionnaire g ON ci.ges = g.code_ges AND g.id_gestionnaire = (SELECT MIN(sub.id_gestionnaire) FROM dwh.dim_gestionnaire sub WHERE sub.code_ges = ci.ges). Cette précaution évite les doublons issus des relations N-N.",
+      "tags": ["gestionnaire", "conseiller", "commercial", "utilisateur", "responsable", "dimension"]
+    },
+
+    {
+      "id": "tbl_004",
+      "type": "ddl_table",
+      "domaine": "referentiel_profil",
+      "table": "dwh.dim_profil",
+      "source_staging": "staging.cleaned_bknom JOIN staging.cleaned_bkprocli",
+      "description_courte": "Dimension des profils clients (catégories réglementaires et commerciales).",
+      "description_longue": "Table de dimension des profils clients extraite de la nomenclature AMPLITUDE (bknom, table de codes avec ctab='050') croisée avec la table d'affectation profil-client (bkprocli). Un profil est une catégorie réglementaire ou commerciale attribuée à un client, comme 'Personnel de la banque', 'Client VIP', 'Client standard'. Les profils avec codes 900 à 904 sont marqués comme 'apparentés à la banque', ce qui est important pour les analyses réglementaires.",
+      "cle_primaire": "pro",
+      "colonnes": [
+        {"nom": "pro", "type": "VARCHAR", "description": "Code du profil sur 3 caractères, issu de la table de nomenclature bknom (ctab='050'). Clé primaire. Exemple : 900 pour le personnel de la banque."},
+        {"nom": "libelle", "type": "VARCHAR", "description": "Libellé descriptif du profil en clair, issu du champ lib1 de la table bknom."},
+        {"nom": "apparente", "type": "VARCHAR", "description": "Indique si le profil correspond à un client apparenté à la banque. Valeurs : 'Oui' pour les codes 900 à 904 (personnel de la banque et apparentés), 'Non' pour tous les autres profils. Important pour les analyses de risque réglementaire."}
+      ],
+      "index": [],
+      "tags": ["profil", "categorie", "client", "reglementaire", "personnel", "apparente", "dimension"]
+    },
+
+    {
+      "id": "tbl_005",
+      "type": "ddl_table",
+      "domaine": "referentiel_profil",
+      "table": "dwh.dim_cli_profil",
+      "source_staging": "staging.cleaned_bknom JOIN staging.cleaned_bkprocli",
+      "description_courte": "Table de correspondance entre clients et leurs profils.",
+      "description_longue": "Table de correspondance (bridge table) permettant de relier un client à son ou ses profils. Un client peut avoir plusieurs profils dans le système AMPLITUDE. La clé primaire composite (cli, pro) garantit l'unicité de la relation. Utilisée en jointure intermédiaire pour enrichir les tables de faits avec les informations de profil client.",
+      "cle_primaire": "cli, pro (composite)",
+      "colonnes": [
+        {"nom": "cli", "type": "VARCHAR", "description": "Code client sur 15 caractères, nettoyé avec TRIM. Correspond au champ cli de la table bkcli. Indexé pour les jointures."},
+        {"nom": "pro", "type": "VARCHAR", "description": "Code profil sur 3 caractères, correspond à la colonne pro de dim_profil."}
+      ],
+      "index": ["idx_dim_cliprofil_cli"],
+      "tags": ["profil", "client", "correspondance", "bridge", "dimension"]
+    },
+
+    {
+      "id": "tbl_006",
+      "type": "ddl_table",
+      "domaine": "referentiel_organisme",
+      "table": "dwh.dim_organisme",
+      "source_staging": "staging.cleaned_bkmat JOIN staging.cleaned_bknom",
+      "description_courte": "Dimension des organismes employeurs ou de domiciliation des clients.",
+      "description_longue": "Table de dimension des organismes auxquels sont rattachés les clients, typiquement les employeurs pour les salariés ou les organismes de domiciliation de salaire. Construite en croisant la table bkmat (matières, contrats liés aux comptes) et la nomenclature bknom (ctab='055'). L'organisme 00038 est exclu car il correspond à un code générique non significatif. La colonne cli est extraite du numéro de compte (ncp) en prenant les caractères 4 à 9, ce qui correspond au code client embarqué dans le numéro de compte AMPLITUDE.",
+      "cle_primaire": "cli, org, mat (composite)",
+      "colonnes": [
+        {"nom": "cli", "type": "VARCHAR", "description": "Code client extrait du numéro de compte (substring du champ ncp, positions 4 à 9). Indexé pour les jointures avec les tables de faits."},
+        {"nom": "org", "type": "VARCHAR", "description": "Code de l'organisme sur 5 caractères, issu du champ org de bkmat et de la nomenclature bknom (ctab='055')."},
+        {"nom": "organisme", "type": "VARCHAR", "description": "Libellé de l'organisme en clair, issu du champ lib1 de bknom. Exemples : 'CAMTEL', 'SONARA', 'CAMAIR-CO', 'MINISTERE DES FINANCES'."},
+        {"nom": "mat", "type": "VARCHAR", "description": "Code matière, identifiant le type de contrat ou de lien entre le client et l'organisme dans le système AMPLITUDE."}
+      ],
+      "index": ["idx_dim_org_cli"],
+      "tags": ["organisme", "employeur", "domiciliation", "salaire", "entreprise", "dimension"]
+    },
+
+    {
+      "id": "tbl_007",
+      "type": "ddl_table",
+      "domaine": "gestion_risque",
+      "table": "dwh.dim_opposition",
+      "source_staging": "staging.cleaned_bkoppcom JOIN staging.cleaned_bkcom JOIN staging.cleaned_bknom",
+      "description_courte": "Dimension des oppositions actives sur les comptes bancaires.",
+      "description_longue": "Table de dimension listant toutes les oppositions actives sur les comptes clients. Une opposition est une mesure de blocage d'un compte (saisie-arrêt, opposition judiciaire, etc.). Seules les oppositions actives sont conservées : état = 'v' (valide) et non levées (dlev IS NULL) et non expirées (dfin IS NULL ou dfin > date du jour). La jointure avec bknom (ctab='070') fournit le libellé du type d'opposition.",
+      "cle_primaire": "compte, opp (composite)",
+      "colonnes": [
+        {"nom": "compte", "type": "VARCHAR", "description": "Identifiant unique du compte bancaire, construit comme la concaténation du numéro de compte (ncp) et de la clé de contrôle (clc) séparés par un tiret. Exemple : '00123456789-12'. Indexé."},
+        {"nom": "opp", "type": "VARCHAR(2)", "description": "Code type d'opposition sur 2 caractères, issu de la nomenclature bknom (ctab='070')."},
+        {"nom": "lib1", "type": "VARCHAR", "description": "Libellé du type d'opposition en clair. Exemple : 'Saisie-arrêt', 'Opposition judiciaire'."},
+        {"nom": "ddeb", "type": "DATE", "description": "Date de début de l'opposition, c'est-à-dire la date à laquelle le compte a été bloqué."},
+        {"nom": "dfin", "type": "DATE", "description": "Date de fin prévue de l'opposition. NULL si l'opposition est à durée indéterminée."},
+        {"nom": "motifo", "type": "VARCHAR", "description": "Motif textuel de l'opposition saisi par l'utilisateur lors du blocage."},
+        {"nom": "uti", "type": "VARCHAR", "description": "Code utilisateur ayant enregistré l'opposition dans le système."}
+      ],
+      "index": ["idx_dim_opp_compte"],
+      "tags": ["opposition", "blocage", "saisie", "risque", "juridique", "contentieux", "dimension"]
+    },
+
+    {
+      "id": "tbl_008",
+      "type": "ddl_table",
+      "domaine": "credit",
+      "table": "dwh.dim_dossier_credit",
+      "source_staging": "staging.cleaned_bkdosprt",
+      "description_courte": "Dimension des dossiers de prêt avec les conditions financières à la mise en place.",
+      "description_longue": "Table de dimension des dossiers de crédit, construite à partir de la table bkdosprt (dossiers prêts) du système AMPLITUDE. Chaque ligne représente un dossier de crédit unique identifié par son numéro d'événement (eve). En cas de dossiers multiples pour le même eve (révisions, avenants), le DISTINCT ON sur eve avec ORDER BY mon DESC retient la version avec le montant le plus élevé, correspondant au dossier le plus récent ou le plus représentatif. Les taux sont normalisés pour gérer les virgules françaises (remplacement virgule par point).",
+      "cle_primaire": "eve",
+      "colonnes": [
+        {"nom": "eve", "type": "VARCHAR", "description": "Numéro d'événement du dossier de crédit, clé primaire. Correspond au numéro de prêt unique dans AMPLITUDE. Exemple : 'EVT2024001234'. Utilisé comme clé de jointure principale pour les faits de crédit."},
+        {"nom": "cli", "type": "VARCHAR", "description": "Code client emprunteur sur 15 caractères. Indexé pour les jointures avec dim_client."},
+        {"nom": "date_mise_en_place", "type": "DATE", "description": "Date de mise en place du dossier de crédit, c'est-à-dire la date à laquelle le crédit a été accordé et comptabilisé."},
+        {"nom": "annee_mep", "type": "VARCHAR", "description": "Année de mise en place au format texte 4 chiffres. Exemple : '2024'. Utile pour les filtres et regroupements annuels sans jointure avec dim_temps."},
+        {"nom": "mois_mep", "type": "VARCHAR", "description": "Mois de mise en place au format 'MM-NomDuMois'. Exemple : '03-Mars'. Utile pour les analyses mensuelles."},
+        {"nom": "total_echeance", "type": "INTEGER", "description": "Nombre total d'échéances prévues dans le plan de remboursement du crédit. Correspond au champ tech de bkdosprt."},
+        {"nom": "total_echeance_rembourse", "type": "INTEGER", "description": "Nombre d'échéances déjà remboursées à ce jour. Correspond au champ dech de bkdosprt. Permet de calculer l'avancement du remboursement."},
+        {"nom": "premiere_echeance", "type": "DATE", "description": "Date de la première échéance de remboursement du crédit."},
+        {"nom": "derniere_echeance", "type": "DATE", "description": "Date de la dernière échéance prévue du crédit, correspondant à la date d'échéance finale du prêt."},
+        {"nom": "montant_echeance", "type": "NUMERIC", "description": "Montant d'une échéance mensuelle standard du crédit, en francs CFA. Correspond au champ map de bkdosprt."},
+        {"nom": "taux_interet", "type": "NUMERIC(10,4)", "description": "Taux d'intérêt annuel appliqué au crédit en pourcentage. Normalisé pour corriger les valeurs avec virgule française. Exemple : 12.5 pour 12,5%."},
+        {"nom": "teg", "type": "NUMERIC", "description": "Taux Effectif Global du crédit incluant tous les frais et commissions. Indicateur réglementaire obligatoire."},
+        {"nom": "montant_mep", "type": "NUMERIC", "description": "Montant initial du crédit accordé lors de la mise en place, en francs CFA. Correspond au champ mon de bkdosprt, sélectionné par le MAX en cas de doublons."}
+      ],
+      "index": ["idx_dim_dc_cli"],
+      "tags": ["credit", "pret", "dossier", "emprunt", "taux", "echeance", "mep", "mise_en_place", "dimension"]
+    },
+
+    {
+      "id": "tbl_009",
+      "type": "ddl_table",
+      "domaine": "credit",
+      "table": "dwh.dim_produit",
+      "source_staging": "referentiel_statique_CASE_WHEN",
+      "description_courte": "Référentiel statique des produits de crédit avec leur catégorie et maturité.",
+      "description_longue": "Table de référentiel statique des produits de crédit de l'institution, alimentée directement par des valeurs codées en dur (INSERT INTO ... VALUES) à partir des chapitres comptables (champ cha) identifiés dans le système AMPLITUDE. Chaque produit est caractérisé par son chapitre comptable, son libellé commercial, sa maturité (CT=Court Terme, MT=Moyen Terme, LT=Long Terme) et son type de financement.",
+      "cle_primaire": "cha",
+      "colonnes": [
+        {"nom": "cha", "type": "VARCHAR(50)", "description": "Chapitre comptable du produit de crédit, clé primaire. Correspond au champ cha de la table bkcom dans AMPLITUDE. Exemple : '326500' pour C-BUSINESS CT."},
+        {"nom": "libelle_produit", "type": "VARCHAR(255)", "description": "Nom commercial du produit de crédit. Valeurs possibles : C-BUSINESS CT, CEPI FLEXI CT, CREDIT SCOLAIRE CT, CEPI CLASSIQUE CT, CEPI PRESTIGE CT, CREDIT HABITAT CFC CT, CEPI PRIVATE CT, CEPI INVEST MT, PME MT, CREDIT HABITAT CFC MT, CEPI IMMOB LT, CEPI AGRI LT, CREDIT HABITAT CFC LT, FODDEC, CEPI PROJECT."},
+        {"nom": "maturite", "type": "VARCHAR(10)", "description": "Maturité du produit de crédit. Valeurs : 'CT' (Court Terme), 'MT' (Moyen Terme), 'LT' (Long Terme), NULL pour les produits sans maturité définie comme FODDEC et CEPI PROJECT."},
+        {"nom": "type_financement", "type": "VARCHAR(50)", "description": "Catégorie du type de financement. Valeurs : 'COMM' (Commercial/Entreprise), 'PRIV' (Privé/Particulier), 'AGRI' (Agricole), 'Autres' (autres financements)."}
+      ],
+      "index": [],
+      "liste_produits": {
+        "326500": {"libelle": "C-BUSINESS CT", "maturite": "CT", "type": "COMM"},
+        "326600": {"libelle": "CEPI FLEXI CT", "maturite": "CT", "type": "Autres"},
+        "326400": {"libelle": "CREDIT SCOLAIRE CT", "maturite": "CT", "type": "Autres"},
+        "324221": {"libelle": "CEPI CLASSIQUE CT", "maturite": "CT", "type": "PRIV"},
+        "324222": {"libelle": "CEPI PRESTIGE CT", "maturite": "CT", "type": "PRIV"},
+        "328201": {"libelle": "CREDIT HABITAT CFC CT", "maturite": "CT", "type": "Autres"},
+        "328000": {"libelle": "CEPI PRIVATE CT", "maturite": "CT", "type": "PRIV"},
+        "311110": {"libelle": "CEPI INVEST MT", "maturite": "MT", "type": "COMM"},
+        "316130": {"libelle": "PME MT", "maturite": "MT", "type": "COMM"},
+        "312141": {"libelle": "CREDIT HABITAT CFC MT", "maturite": "MT", "type": "Autres"},
+        "301160": {"libelle": "CEPI IMMOB LT", "maturite": "LT", "type": "Autres"},
+        "302101": {"libelle": "CEPI AGRI LT", "maturite": "LT", "type": "AGRI"},
+        "302142": {"libelle": "CREDIT HABITAT CFC LT", "maturite": "LT", "type": "Autres"},
+        "371275": {"libelle": "FODDEC", "maturite": null, "type": "Autres"},
+        "373320": {"libelle": "CEPI PROJECT", "maturite": null, "type": "Autres"}
+      },
+      "tags": ["produit", "credit", "maturite", "financement", "pret", "categorie", "dimension"]
+    },
+
+    {
+      "id": "tbl_010",
+      "type": "ddl_table",
+      "domaine": "client",
+      "table": "dwh.dim_client",
+      "source_staging": "staging.cleaned_bkcli LEFT JOIN staging.cleaned_bktelcli LEFT JOIN staging.cleaned_bksig_client",
+      "description_courte": "Dimension clients enrichie avec données KYC, téléphone et signature.",
+      "description_longue": "Table de dimension principale des clients, construite en croisant trois sources : bkcli (données d'identité et KYC), bktelcli (numéros de téléphone normalisés au format +237XXXXXXXXX), et bksig_client (présence et identifiant de signature électronique). Un DISTINCT ON sur le code client garantit l'unicité. L'âge est calculé dynamiquement à partir de la date de naissance. L'état de la pièce d'identité est qualifié (valide, expirée, inexistante) par rapport à la date du jour.",
+      "cle_primaire": "cli",
+      "colonnes": [
+        {"nom": "cli", "type": "VARCHAR", "description": "Code client unique sur 15 caractères, nettoyé avec TRIM. Clé primaire. Correspond au champ cli de la table bkcli dans AMPLITUDE."},
+        {"nom": "raison_sociale", "type": "VARCHAR", "description": "Nom complet du client tel qu'il doit être restitué. Pour les particuliers : prénom et nom. Pour les entreprises : raison sociale. Issu du champ nomrest de bkcli."},
+        {"nom": "genre", "type": "VARCHAR(1)", "description": "Sexe du client particulier. Valeurs : 'M' pour Masculin, 'F' pour Féminin. NULL pour les entreprises."},
+        {"nom": "type_client", "type": "VARCHAR", "description": "Catégorie du client selon le type AMPLITUDE. Valeurs : 'Particulier' (tcli='1'), 'E/se' pour Entreprise ou Société (tcli > '1'), 'Inconnu' si non renseigné."},
+        {"nom": "date_naissance", "type": "DATE", "description": "Date de naissance du client particulier, ou date de création pour les entreprises. NULL si non renseignée."},
+        {"nom": "age_client", "type": "INTEGER", "description": "Âge calculé dynamiquement à chaque reconstruction du DWH en années révolues à partir de la date de naissance. NULL si date_naissance est NULL."},
+        {"nom": "etat_piece_identite", "type": "VARCHAR", "description": "Qualification de l'état de la pièce d'identité du client. Valeurs possibles : 'CIN Valide', 'PASSEPORT Valide', 'CIN Expire', 'PASSEPORT Expire', 'Piece ID inexistante'. Construit en combinant le code type de pièce (tid) et la date de validité (vid) par rapport à la date du jour."},
+        {"nom": "telephone", "type": "VARCHAR", "description": "Numéro de téléphone principal du client, normalisé au format international +237XXXXXXXXX lors de l'étape de transformation ETL (dag_cleaning_banking_data_v2)."},
+        {"nom": "signature", "type": "VARCHAR(1)", "description": "Indique si le client dispose d'une signature électronique enregistrée dans le système. Valeurs : 'O' (Oui, signature présente), 'N' (Non, pas de signature)."},
+        {"nom": "identifiant_signature", "type": "VARCHAR", "description": "Identifiant unique de la signature électronique du client dans le système. NULL si pas de signature."}
+      ],
+      "index": ["idx_dim_client_cli"],
+      "tags": ["client", "kyc", "identite", "particulier", "entreprise", "telephone", "signature", "dimension"]
+    },
+
+    {
+      "id": "tbl_011",
+      "type": "ddl_table",
+      "domaine": "portefeuille_comptes",
+      "table": "dwh.fait_portefeuille_comptes",
+      "source_staging": "staging.cleaned_bkcom JOIN staging.cleaned_bkcli + dimensions",
+      "description_courte": "Table de faits du portefeuille de comptes courants, épargne et comptes débiteurs.",
+      "description_longue": "Table de faits principale du portefeuille de comptes bancaires clients. Contient un snapshot journalier de tous les comptes courants (371x, 372x), d'épargne (373x) et du programme CEPI PROJECT (373320), à l'exclusion des comptes d'affacturage et PEC (371211 à 371262). Le gestionnaire 120 est exclu car il correspond aux comptes techniques internes. La clé primaire composite (compte, date_id) permet le suivi temporel. Chaque compte n'apparaît qu'une seule fois grâce au DISTINCT ON. Contient des flags d'anomalie, d'opposition et des indicateurs comportementaux de mouvement.",
+      "cle_primaire": "compte, date_id (composite)",
+      "perimetre": "Comptes avec cha LIKE '371%' OR cha LIKE '372%' OR cha LIKE '373%', hors codes 371211-371262 (affacturage), gestionnaire 120 exclu.",
+      "mesures": ["solde"],
+      "colonnes": [
+        {"nom": "compte", "type": "VARCHAR", "description": "Identifiant unique du compte bancaire, concaténation de ncp (numéro de compte 11 car.) et clc (clé de contrôle 2 car.) séparés par un tiret. Exemple : '00123456789-12'. Clé technique du compte."},
+        {"nom": "cli", "type": "VARCHAR", "description": "Code client propriétaire du compte. Clé de jointure vers dim_client."},
+        {"nom": "gestionnaire_id", "type": "INTEGER", "description": "Clé de substitution du gestionnaire responsable du compte. -1 si aucun gestionnaire identifié. Clé de jointure vers dim_gestionnaire."},
+        {"nom": "age", "type": "VARCHAR(5)", "description": "Code de l'agence où est domicilié le compte. Clé de jointure vers dim_agence."},
+        {"nom": "cha", "type": "VARCHAR", "description": "Chapitre comptable du compte, déterminant son type produit. Clé de jointure vers dim_produit."},
+        {"nom": "date_id", "type": "INTEGER", "description": "Date du snapshot au format YYYYMMDD. Correspond à CURRENT_DATE au moment de la construction du DWH. Clé de jointure vers dim_temps."},
+        {"nom": "solde", "type": "NUMERIC", "description": "Solde comptable du compte en francs CFA au moment du snapshot. Positif = compte créditeur. Négatif = compte débiteur. Issu du champ sde de bkcom."},
+        {"nom": "anomalie", "type": "VARCHAR", "description": "Signal d'anomalie détecté sur le compte. Valeurs : 'Solde Non conforme (<10000)' pour les comptes épargne (373x hors 373320) avec solde inférieur à 10 000 FCFA, 'Solde Non conforme (<1 Million)' pour le CEPI PROJECT (373320) avec solde inférieur à 1 000 000 FCFA, NULL si pas d'anomalie."},
+        {"nom": "flag_opposition", "type": "VARCHAR(1)", "description": "Indique si le compte fait l'objet d'une opposition active. Valeurs : 'O' (compte sous opposition), 'N' (compte libre)."},
+        {"nom": "arr", "type": "VARCHAR", "description": "Mode de comptabilisation des agios du compte. Valeurs : 'Comptabilisation' (arr='o'), 'Pas Comptabilisation' (arr='n'), NULL sinon."},
+        {"nom": "infos_complementaire", "type": "VARCHAR", "description": "Informations comportementales sur les mouvements du compte. Valeurs : 'Aucun Mvt crediteur 90Jrs et +' (pas de crédit depuis plus de 90 jours), 'Mvt crediteur Inexistant' (jamais eu de mouvement créditeur), 'Compte crediteur sans Mvt debiteur 90Jrs et +', 'Compte crediteur sans Mvt debiteur', NULL sinon."},
+        {"nom": "type_cpt", "type": "VARCHAR", "description": "Catégorie fonctionnelle du compte. Valeurs : 'Salaries/Pensionnes' (372x), 'E/se' pour entreprises (371x hors 371275), 'Epargne' (373x hors 373320), 'Cepi Project' (373320), 'FODDEC' (371275), NULL sinon."},
+        {"nom": "utic", "type": "VARCHAR", "description": "Code de l'utilisateur ayant créé le compte dans le système AMPLITUDE."},
+        {"nom": "inti", "type": "VARCHAR", "description": "Intitulé ou libellé du compte tel que saisi lors de l'ouverture."}
+      ],
+      "index": ["idx_fait_port_cli", "idx_fait_port_age", "idx_fait_port_ges_id", "idx_fait_port_cha"],
+      "regles_metier": [
+        "Un compte avec anomalie 'Solde Non conforme' doit être signalé au gestionnaire pour régularisation.",
+        "Un compte avec flag_opposition = 'O' ne peut pas faire l'objet de débits sans autorisation judiciaire.",
+        "Un compte avec infos_complementaire 'Aucun Mvt crediteur 90Jrs et +' est considéré comme inactif et peut être soumis à des frais de tenue de compte."
+      ],
+      "tags": ["portefeuille", "compte", "solde", "epargne", "courant", "opposition", "anomalie", "activite", "fait"]
+    },
+
+    {
+      "id": "tbl_012",
+      "type": "ddl_table",
+      "domaine": "credit",
+      "table": "dwh.fait_encours_credit",
+      "source_staging": "staging.cleaned_bkcom JOIN staging.cleaned_bkcli + dimensions",
+      "description_courte": "Table de faits des encours de crédit avec classification des impayés et indicateurs de risque.",
+      "description_longue": "Table de faits principale pour l'analyse du portefeuille de crédit. Contient tous les comptes de crédit en cours (chapitres 30x, 31x, 32x, 33x, 37x, 38x) avec leurs encours et une classification détaillée des impayés. Les comptes d'affacturage et PEC (371211-371262) sont exclus. Chaque compte n'apparaît qu'une seule fois (DISTINCT ON). Inclut des indicateurs comportementaux sur l'activité récente du compte et la classification du type d'encours.",
+      "cle_primaire": "compte, date_id (composite)",
+      "perimetre": "sde < 0 (comptes débiteurs) avec cha LIKE '371%','372%','30%','31%','32%','331%','332%','338%','386%'",
+      "mesures": ["encours", "impayes", "impayes_33", "creances_impayes", "creances_contentieuses", "creances_irrecouvrables", "echeance_at_386"],
+      "colonnes": [
+        {"nom": "compte", "type": "VARCHAR", "description": "Identifiant unique du compte de crédit (ncp || '-' || clc). Clé technique."},
+        {"nom": "cli", "type": "VARCHAR", "description": "Code client emprunteur. Clé de jointure vers dim_client."},
+        {"nom": "gestionnaire_id", "type": "INTEGER", "description": "Clé de substitution du gestionnaire. -1 si non identifié. Clé de jointure vers dim_gestionnaire."},
+        {"nom": "age", "type": "VARCHAR(5)", "description": "Code agence domiciliataire du compte de crédit. Clé de jointure vers dim_agence."},
+        {"nom": "cha", "type": "VARCHAR", "description": "Chapitre comptable déterminant le type de crédit. Clé de jointure vers dim_produit."},
+        {"nom": "date_id", "type": "INTEGER", "description": "Date du snapshot au format YYYYMMDD. Clé de jointure vers dim_temps."},
+        {"nom": "encours", "type": "NUMERIC", "description": "Solde débiteur du compte de crédit en francs CFA. Valeur négative représentant le capital restant dû. Issu du champ sde de bkcom."},
+        {"nom": "ddc", "type": "DATE", "description": "Date du dernier mouvement créditeur sur le compte. Utilisée pour calculer l'ancienneté du dernier remboursement."},
+        {"nom": "ddd", "type": "DATE", "description": "Date du dernier mouvement sur le compte (ddm dans bkcom)."},
+        {"nom": "impayes", "type": "NUMERIC", "description": "Montant total des impayés du compte, en francs CFA. Calculé comme le solde débiteur des comptes de chapitre 33x et 38x. Valeur négative ou zéro."},
+        {"nom": "impayes_33", "type": "NUMERIC", "description": "Montant des impayés strictement imputés aux chapitres 33x uniquement (créances douteuses et litigieuses)."},
+        {"nom": "creances_impayes", "type": "NUMERIC", "description": "Montant des créances impayées comptabilisées au chapitre 331x. Correspond aux impayés en cours de recouvrement amiable."},
+        {"nom": "creances_contentieuses", "type": "NUMERIC", "description": "Montant des créances contentieuses comptabilisées au chapitre 332x. Correspond aux dossiers transmis au service contentieux."},
+        {"nom": "creances_irrecouvrables", "type": "NUMERIC", "description": "Montant des créances considérées comme irrécouvrables, comptabilisées au chapitre 338x. Dossiers en voie de passage en perte."},
+        {"nom": "echeance_at_386", "type": "NUMERIC", "description": "Montant des échéances comptabilisées au chapitre 386x. Correspond aux échéances en attente de remboursement."},
+        {"nom": "duree_jrs_dernier_mvt", "type": "INTEGER", "description": "Nombre de jours écoulés depuis le dernier mouvement créditeur (ddc) ou depuis l'ouverture du compte si ddc est NULL. Indicateur clé de l'activité du compte."},
+        {"nom": "etat_cpt", "type": "VARCHAR", "description": "État comportemental du compte selon son ancienneté de mouvement. Valeurs : '371_Actif' (dernier mouvement < 90 jours), '371_inactif' (plus de 90 jours sans mouvement), '372_Actif', '372_inactif', '373_Actif', '373_inactif'."},
+        {"nom": "type_encours", "type": "VARCHAR", "description": "Classification métier du type d'encours. Valeurs : 'C-BUSINESS CT', 'CEPI FLEXI CT', 'SCOLAIRE CT', 'CEPI CLASSIQUE CT', 'CEPI PRESTIGE CT', 'CREDIT HABITAT CFC CT', 'CEPI PRIVATE CT', 'CEPI INVEST MT', 'PME MT', 'CREDIT HABITAT CFC MT', 'CEPI IMMOB LT', 'CEPI AGRI LT', 'CREDIT HABITAT CFC LT', 'Impayes', 'Affact/PEC', 'CC Debiteurs', 'Autres credits amort'."},
+        {"nom": "intervalle_mvt", "type": "VARCHAR", "description": "Tranche d'ancienneté du dernier mouvement créditeur pour les comptes courants débiteurs (371x). Valeurs : '1) ]0,30]Jrs', '2) ]30,45]Jrs', '3) ]45,60]Jrs', '4) ]60,90]Jrs', '5) ]90,180]Jrs', '6) ]180,360]Jrs', '7) ]360,+inf]Jrs'. NULL pour les autres types de comptes."},
+        {"nom": "flag_mvt_crediteur", "type": "INTEGER", "description": "Indicateur binaire de présence d'un mouvement créditeur récent pour les comptes 371x. Valeurs : 1 (mouvement créditeur présent), 0 (aucun mouvement créditeur)."},
+        {"nom": "type_client", "type": "VARCHAR", "description": "Type du client emprunteur. Valeurs : 'Particulier' (tcli='1'), 'E/se' pour Entreprise (tcli > '1')."},
+        {"nom": "profil_client", "type": "VARCHAR", "description": "Libellé du profil du client emprunteur, issu de dim_profil."},
+        {"nom": "organisme", "type": "VARCHAR", "description": "Organisme employeur ou de domiciliation du client emprunteur, issu de dim_organisme."}
+      ],
+      "index": ["idx_fait_enc_cli", "idx_fait_enc_age", "idx_fait_enc_ges_id"],
+      "classification_impayes": {
+        "331x": "Créances impayées - recouvrement amiable",
+        "332x": "Créances contentieuses - service contentieux",
+        "338x": "Créances irrécouvrables - passage en perte",
+        "386x": "Échéances en attente de remboursement"
+      },
+      "regles_metier": [
+        "Un compte est considéré en défaut si impayes < 0 (valeur négative) et duree_jrs_dernier_mvt > 90.",
+        "Le taux de créances douteuses se calcule comme ABS(SUM(impayes_33)) / ABS(SUM(encours)) * 100.",
+        "Un encours avec type_encours = 'Impayes' correspond à des chapitres 33x ou 38x et doit être suivi en priorité.",
+        "L'intervalle_mvt ne s'applique qu'aux comptes courants débiteurs (cha LIKE '37%') et non aux crédits amortissables."
+      ],
+      "tags": ["credit", "encours", "impayes", "risque", "defaut", "contentieux", "portefeuille_credit", "fait"]
+    },
+
+    {
+      "id": "tbl_013",
+      "type": "ddl_table",
+      "domaine": "credit",
+      "table": "dwh.fait_mep",
+      "source_staging": "dwh.dim_dossier_credit UPDATE staging.cleaned_bkcom UPDATE dwh.dim_client LEFT JOIN dwh.dim_organisme",
+      "description_courte": "Table de faits des mises en place de crédit (dossiers accordés et débloqués).",
+      "description_longue": "Table de faits des mises en place de crédit (MEP). Construite en plusieurs étapes sequentielles dans un bloc DO : d'abord alimentation depuis dim_dossier_credit, puis enrichissement par UPDATE avec les comptes (bkcom) pour le compte de prêt, l'agence et la maturité, puis enrichissement avec les informations clients et organismes. Chaque ligne représente un dossier de crédit mis en place uniquement. Contrairement à fait_encours_credit qui suit le solde en cours, fait_mep contient les caractéristiques contractuelles initiales du dossier.",
+      "cle_primaire": "numero_pret",
+      "colonnes": [
+        {"nom": "numero_pret", "type": "VARCHAR(50)", "description": "Numéro unique du dossier de prêt, issu du champ eve de dim_dossier_credit. Clé primaire."},
+        {"nom": "compte_pret", "type": "TEXT", "description": "Numéro de compte bancaire associé au dossier de prêt (ncp || '-' || clc). Peut être NULL si aucun compte trouvé dans bkcom."},
+        {"nom": "cli", "type": "VARCHAR(50)", "description": "Code client emprunteur. Clé de jointure vers dim_client."},
+        {"nom": "gestionnaire_id", "type": "INTEGER", "description": "Identifiant du gestionnaire responsable du dossier. -1 si non identifié."},
+        {"nom": "agence", "type": "VARCHAR(50)", "description": "Code agence ayant accordé le crédit. Défaut : '09800' (siège) si non trouvé."},
+        {"nom": "cha", "type": "VARCHAR(50)", "description": "Chapitre comptable du compte de prêt. Défaut : '373320' si non trouvé."},
+        {"nom": "date_id_mep", "type": "INTEGER", "description": "Date de mise en place au format YYYYMMDD. Clé de jointure vers dim_temps."},
+        {"nom": "montant_mep", "type": "NUMERIC", "description": "Montant initial du crédit accordé en francs CFA."},
+        {"nom": "taux_interet", "type": "NUMERIC", "description": "Taux d'intérêt annuel du crédit en pourcentage."},
+        {"nom": "teg", "type": "NUMERIC", "description": "Taux Effectif Global du crédit."},
+        {"nom": "total_echeance", "type": "NUMERIC", "description": "Nombre total d'échéances prévues au plan de remboursement."},
+        {"nom": "total_echeance_rembourse", "type": "NUMERIC", "description": "Nombre d'échéances déjà remboursées."},
+        {"nom": "montant_echeance", "type": "NUMERIC", "description": "Montant d'une échéance mensuelle standard en francs CFA."},
+        {"nom": "maturite_credit", "type": "TEXT", "description": "Maturité du crédit dérivée du chapitre comptable. Valeurs : 'LT' pour chapitres 30x, 'MT' pour 31x, 'CT' pour 32x, 'MT' par défaut."},
+        {"nom": "type_financement", "type": "TEXT", "description": "Type de financement dérivé du chapitre. Valeurs : 'AGRI' (302101), 'PRIV' (324221, 324222), 'COMM' (326500, 316130, 311110), 'Autres' pour le reste."},
+        {"nom": "type_client", "type": "TEXT", "description": "Type du client emprunteur. Défaut : 'Particulier' si non trouvé."},
+        {"nom": "profil_client", "type": "TEXT", "description": "Raison sociale ou nom du client, issu de dim_client.raison_sociale."},
+        {"nom": "organisme", "type": "TEXT", "description": "Organisme de domiciliation du client. Défaut : 'SANS ORG' si non trouvé dans dim_organisme."}
+      ],
+      "index": ["idx_f_mep_cli"],
+      "regles_metier": [
+        "fait_mep représente la production de crédit : chaque ligne = un nouveau crédit accordé.",
+        "Pour calculer la production mensuelle, filtrer sur annee et mois via dim_temps en jointure sur date_id_mep.",
+        "Le montant_mep est le montant accordé initialement, pas l'encours restant dû (qui se trouve dans fait_encours_credit).",
+        "Un taux_interet de 0 indique probablement un dossier sans intérêts ou une donnée manquante à investiguer."
+      ],
+      "tags": ["credit", "mep", "mise_en_place", "production", "dossier", "accordé", "deblocage", "fait"]
+    },
+
+    {
+      "id": "tbl_014",
+      "type": "ddl_table",
+      "domaine": "credit",
+      "table": "dwh.fait_decaissements",
+      "source_staging": "staging.cleaned_bkhis JOIN staging.cleaned_bkcom JOIN staging.cleaned_bkcli + dimensions",
+      "description_courte": "Table de faits des décaissements effectifs sur les dossiers de crédit.",
+      "description_longue": "Table de faits des décaissements réels de crédit, construite à partir de l'historique des mouvements bancaires (bkhis). Un décaissement est identifié par : opération de type '327' (déblocage de crédit), sens débiteur ('d'), et présence d'une référence de lettrage (rlet NOT NULL). Le ROW_NUMBER partitionné par (numero_pret, dco) permet de séquencer plusieurs décaissements le même jour pour un même dossier. Cette table diffère de fait_mep : elle trace les flux financiers réels contrairement aux engagements contractuels.",
+      "cle_primaire": "numero_pret, date_id_decaissement, seq_decaissement (composite)",
+      "colonnes": [
+        {"nom": "numero_pret", "type": "VARCHAR(50)", "description": "Numéro du dossier de prêt issu du champ rlet (référence de lettrage) de bkhis. Correspond à l'événement du dossier dans AMPLITUDE."},
+        {"nom": "compte_pret", "type": "TEXT", "description": "Numéro de compte bancaire du décaissement (ncp || '-' || clc)."},
+        {"nom": "cli", "type": "VARCHAR(50)", "description": "Code client bénéficiaire du décaissement."},
+        {"nom": "gestionnaire_id", "type": "INTEGER", "description": "Identifiant du gestionnaire. -1 si non identifié. COALESCE utilisé."},
+        {"nom": "age", "type": "VARCHAR(5)", "description": "Code agence ayant effectué le décaissement (champ age de bkhis)."},
+        {"nom": "cha", "type": "VARCHAR", "description": "Chapitre comptable du compte de crédit."},
+        {"nom": "date_id_decaissement", "type": "INTEGER", "description": "Date comptable du décaissement au format YYYYMMDD (TO_CHAR(h.dco, 'YYYYMMDD')). Clé de jointure vers dim_temps."},
+        {"nom": "montant_decaissement", "type": "NUMERIC", "description": "Montant décaissé en francs CFA pour cette ligne de mouvement, issu du champ mon de bkhis."},
+        {"nom": "seq_decaissement", "type": "INTEGER", "description": "Numéro de séquence du décaissement dans le cas de plusieurs déblocages le même jour pour le même dossier. Commence à 1."},
+        {"nom": "type_client", "type": "VARCHAR", "description": "Type du client emprunteur. 'Particulier' ou 'E/se'."},
+        {"nom": "profil_client", "type": "VARCHAR", "description": "Libellé du profil du client bénéficiaire."},
+        {"nom": "organisme", "type": "VARCHAR", "description": "Organisme de domiciliation du client bénéficiaire."}
+      ],
+      "index": ["idx_f_dec_pret", "idx_f_dec_cli", "idx_f_dec_ges"],
+      "regles_metier": [
+        "Un décaissement est un flux financier réel (débit sur le compte de crédit), contrairement à fait_mep qui est un engagement contractuel.",
+        "Pour analyser les décaissements d'une période, filtrer sur date_id_decaissement avec une jointure sur dim_temps.",
+        "Un dossier peut avoir plusieurs décaissements (déblocages progressifs), d'où la clé composite avec seq_decaissement.",
+        "Le montant total décaissé pour un dossier se calcule comme SUM(montant_decaissement) GROUP BY numero_pret."
+      ],
+      "tags": ["decaissement", "deblocage", "credit", "flux", "mouvement", "historique", "fait"]
+    }
+
+  ],
+
+  "regles_metier_globales": [
+    {
+      "id": "rg_001",
+      "domaine": "credit",
+      "regle": "Le taux de créances douteuses (TCD) se calcule comme : ABS(SUM(impayes_33)) / ABS(SUM(encours)) * 100, exprimé en pourcentage. À calculer depuis fait_encours_credit.",
+      "table_concernee": "dwh.fait_encours_credit",
+      "tags": ["taux", "creances_douteuses", "risque", "indicateur"]
+    },
+    {
+      "id": "rg_002",
+      "domaine": "credit",
+      "regle": "Un crédit est en défaut si le compte présente des impayés (impayes < 0) et que le dernier mouvement créditeur date de plus de 90 jours (duree_jrs_dernier_mvt > 90). Les comptes en défaut avéré sont ceux dont le type_encours est 'Impayes'.",
+      "table_concernee": "dwh.fait_encours_credit",
+      "tags": ["defaut", "impaye", "risque", "90jours"]
+    },
+    {
+      "id": "rg_003",
+      "domaine": "portefeuille",
+      "regle": "Un compte est considéré inactif si le dernier mouvement créditeur date de plus de 90 jours. Pour les comptes 373x (épargne), l'inactivité est détectée via infos_complementaire = 'Aucun Mvt crediteur 90Jrs et +' dans fait_portefeuille_comptes.",
+      "table_concernee": "dwh.fait_portefeuille_comptes",
+      "tags": ["inactif", "dormant", "90jours", "compte"]
+    },
+    {
+      "id": "rg_004",
+      "domaine": "credit",
+      "regle": "La production de crédit d'une période correspond à la somme des montant_mep dans fait_mep, filtrée sur la période via date_id_mep et dim_temps.",
+      "table_concernee": "dwh.fait_mep",
+      "tags": ["production", "credit", "accordé", "periode"]
+    },
+    {
+      "id": "rg_005",
+      "domaine": "credit",
+      "regle": "L'encours net de crédit se calcule comme ABS(SUM(encours)) depuis fait_encours_credit pour les chapitres 30x, 31x et 32x uniquement (crédits amortissables sains), excluant les chapitres 33x et 38x (impayés).",
+      "table_concernee": "dwh.fait_encours_credit",
+      "tags": ["encours_net", "credit_sain", "indicateur"]
+    },
+    {
+      "id": "rg_006",
+      "domaine": "client",
+      "regle": "Un client apparenté à la banque est identifié par un profil dont le code est compris entre 900 et 904 dans dim_profil (colonne apparente = 'Oui'). Ces clients sont soumis à des règles réglementaires spécifiques.",
+      "table_concernee": "dwh.dim_profil",
+      "tags": ["apparente", "personnel", "reglementaire", "client"]
+    },
+    {
+      "id": "rg_007",
+      "domaine": "portefeuille",
+      "regle": "Un compte sous opposition ne peut pas faire l'objet de transactions sans autorisation judiciaire. Identifiable via flag_opposition = 'O' dans fait_portefeuille_comptes, avec le détail de l'opposition dans dim_opposition.",
+      "table_concernee": "dwh.fait_portefeuille_comptes",
+      "tags": ["opposition", "blocage", "juridique", "restriction"]
+    },
+    {
+      "id": "rg_008",
+      "domaine": "credit",
+      "regle": "La différence entre fait_mep (dossiers accordés) et fait_decaissements (fonds effectivement versés) permet d'identifier les dossiers accordés mais pas encore décaissés, c'est-à-dire les engagements non tirés.",
+      "table_concernee": "dwh.fait_mep, dwh.fait_decaissements",
+      "tags": ["engagement", "non_tire", "decaissement", "accord"]
+    }
+  ],
+
+  "jointures_cles": [
+    {
+      "id": "jn_001",
+      "description": "Joindre un fait avec la dimension temps",
+      "exemple_sql": "JOIN dwh.dim_temps t ON f.date_id = t.date_id",
+      "tags": ["jointure", "temps", "date"]
+    },
+    {
+      "id": "jn_002",
+      "description": "Joindre un fait avec la dimension client",
+      "exemple_sql": "JOIN dwh.dim_client c ON f.cli = c.cli",
+      "tags": ["jointure", "client"]
+    },
+    {
+      "id": "jn_003",
+      "description": "Joindre un fait avec la dimension gestionnaire (précaution anti-doublons obligatoire)",
+      "exemple_sql": "LEFT JOIN dwh.dim_gestionnaire g ON f.gestionnaire_id = g.id_gestionnaire",
+      "tags": ["jointure", "gestionnaire"]
+    },
+    {
+      "id": "jn_004",
+      "description": "Joindre un fait avec la dimension agence",
+      "exemple_sql": "JOIN dwh.dim_agence a ON f.age = a.age",
+      "tags": ["jointure", "agence"]
+    },
+    {
+      "id": "jn_005",
+      "description": "Joindre un fait avec la dimension produit via le chapitre comptable",
+      "exemple_sql": "LEFT JOIN dwh.dim_produit p ON f.cha = p.cha",
+      "tags": ["jointure", "produit", "chapitre"]
+    },
+    {
+      "id": "jn_006",
+      "description": "Obtenir le profil d'un client via la bridge table",
+      "exemple_sql": "LEFT JOIN dwh.dim_cli_profil cp ON f.cli = cp.cli LEFT JOIN dwh.dim_profil pr ON cp.pro = pr.pro",
+      "tags": ["jointure", "profil", "client"]
+    }
+  ]
+}
