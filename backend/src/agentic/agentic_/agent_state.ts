@@ -40,6 +40,11 @@ export const AgentState = Annotation.Root({
     default: () => "",
   }),
 
+  summary: Annotation<string>({
+    reducer: (_current, update) => update,
+    default: () => "",
+  }),
+
   // ── Verdict du juge (rempli par judgeNode) ───────────────────────────────
   judgeVerdict: Annotation<{ isValid: boolean; feedback: string } | null>({
     reducer: (_current, update) => update,

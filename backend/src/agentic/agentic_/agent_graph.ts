@@ -533,38 +533,65 @@ async function reformulateNode(
   console.log("[reformulateNode] userQuestion =", state.userQuestion);
 
   // Prompt robuste pour forcer l'extraction d'intention
-  const prompt = `
-  Tu es un expert en Business Intelligence et gestion de la relation client en microfinance.
-  Analyse la question initiale de l'utilisateur.
-  
-  Tu dois analyser trois aspects et répondre STRICTEMENT sous la forme d'un JSON brut (sans balises markdown) :
+  const systemInstructions = `
+Tu es un classifieur d'intention pour un assistant de Business Intelligence en microfinance.
+Réponds STRICTEMENT en JSON brut (sans balises markdown), en analysant la question fournie par l'utilisateur dans le message suivant.
 
-  1. DÉTECTION DE POLITESSE / SALUTATIONS / CHITCHAT :
-     - Détermine si la question est une simple salutation, un remerciement ou une phrase de politesse (ex: "bonjour", "salut", "ça va ?", "merci").
-     - Si oui, positionne "isChitchat": true et rédige une réponse polie et accueillante adaptée dans "chitchatResponse" (ex: "Bonjour ! Que puis-je faire pour vous aujourd'hui ?").
+======================================================================
+1. DÉTECTION DE CHITCHAT — RÈGLE TRÈS STRICTE
+======================================================================
+"isChitchat": true UNIQUEMENT si le message est EXCLUSIVEMENT composé de :
+  - une salutation seule ("bonjour", "salut", "bonsoir", "hello")
+  - une formule de politesse seule ("merci", "ça va ?", "comment vas-tu ?")
+  - un remerciement ou au revoir seul ("merci beaucoup", "à bientôt")
+  - une phrase relationnelle sans contenu informationnel ("tu es mon expert préféré", "je t'aime bien")
 
-  2. REFORMULATION STRICTE (Uniquement si "isChitchat" est false) :
-     - Reformule la question de manière claire et professionnelle en conservant obligatoirement la langue : ${state.userLanguage}.
-     - RÈGLE D'OR DE FIDÉLITÉ : Ne change JAMAIS le périmètre de la question. Si l'utilisateur demande des informations spécifiques sur UNE entité précise (ex: un client particulier 'CLI 301580', une agence, son genre, son téléphone), tu dois RESTER sur cette entité précise. 
-     - Interdiction formelle d'inventer des concepts ou de transformer une fiche client en un "rapport d'analyse de performance du portefeuille de crédit" ou en indicateur de risque "PAR" si ce n'est pas demandé.
+Le message ne doit contenir AUCUNE des choses suivantes, même mélangée à une politesse.
+Si l'UNE de ces choses est présente, "isChitchat" est TOUJOURS "false", sans exception :
+  - une opération mathématique ou un calcul
+  - une question générale de culture ou hors du domaine microfinance
+  - une référence à une entité métier : client, agence, gestionnaire, compte, crédit,
+    numéro, code client, encours, décaissement, remboursement
+  - une demande de donnée, de chiffre, de liste, d'évolution, de rapport, de graphique
+  - toute question qui attend une réponse factuelle ou analytique, même vague
 
-  3. DÉTECTION DES BESOINS DE RESTITUTION :
-     - requireChart : true si la question demande explicitement ou implicitement un graphique, une courbe, une répartition visuelle.
-     - requireReport : true si la question demande un "rapport complet", un "bilan global", une "synthèse de performance".
+Si "isChitchat" est true, rédige une réponse d'accueil dans "chitchatResponse".
+Si "isChitchat" est false, laisse "chitchatResponse" à une chaîne vide.
 
-  SCHÉMA DU JSON DE RÉPONSE ATTENDU :
-  {
-    "isChitchat": true/false,
-    "chitchatResponse": "Texte de salutation si isChitchat est true, sinon chaine vide",
-    "reformulatedQuestion": "la question reformulée fidèle et précise",
-    "requireChart": true/false,
-    "requireReport": true/false
-  }
+======================================================================
+2. REFORMULATION STRICTE (uniquement si "isChitchat" est false)
+======================================================================
+- Reformule la question EXACTE fournie ci-dessous, de manière claire et professionnelle,
+  en conservant obligatoirement la langue : ${state.userLanguage}.
+- RÈGLE D'OR DE FIDÉLITÉ : ne change JAMAIS le périmètre de la question. Si l'utilisateur demande
+  des informations sur UNE entité précise (client, agence, gestionnaire, un code comme "CLI 301580"...),
+  tu dois RESTER sur cette entité précise et la faire apparaître littéralement dans "reformulatedQuestion".
+- Interdiction formelle d'inventer une autre question, un autre client, ou un autre sujet que celui
+  réellement posé par l'utilisateur.
+
+======================================================================
+3. DÉTECTION DES BESOINS DE RESTITUTION
+======================================================================
+- requireChart : true si la question demande explicitement ou implicitement un graphique, une courbe, une répartition visuelle.
+- requireReport : true si la question demande un "rapport complet", un "bilan global", une "synthèse de performance".
+
+======================================================================
+SCHÉMA DU JSON DE RÉPONSE ATTENDU (rien d'autre, pas de texte hors JSON) :
+{
+  "isChitchat": true/false,
+  "chitchatResponse": "texte si isChitchat=true, sinon chaine vide",
+  "reformulatedQuestion": "la question reformulée fidèle et précise",
+  "requireChart": true/false,
+  "requireReport": true/false
+}
   `;
 
   const response = await model.invoke([
-    { role: "system", content: "Répond uniquement en JSON strict." },
-    { role: "user", content: prompt },
+    { role: "system", content: systemInstructions },
+    {
+      role: "user",
+      content: `QUESTION RÉELLE DE L'UTILISATEUR À ANALYSER (et uniquement celle-ci) :\n"${state.userQuestion}"`,
+    },
   ]);
 
   let analysis = {
@@ -596,6 +623,9 @@ async function reformulateNode(
       requireChart: false,
       requireReport: false,
       isChitchat: true,
+      summary:
+        analysis.chitchatResponse ||
+        "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
       // On injecte directement la réponse polie dans les messages pour l'utilisateur
       messages: [
         new AIMessage(

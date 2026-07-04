@@ -43,6 +43,7 @@ export const handleAgentAsk = async (
   const SYSTEM_PROMPT = `...`; // inchangé
 
   try {
+    const startTime = Date.now();
     await saveMessage({
       threadId: thread_id,
       userId,
@@ -107,9 +108,46 @@ export const handleAgentAsk = async (
       });
       return;
     }
+    const result = snapshot.values;
+    const output = extractAgentOutput(result);
+    if (result.isChitchat === true) {
+      console.log("[API] 💬 Traitement d'une réponse de politesse (Chitchat)");
+      output.summary =
+        output.summary?.trim() ||
+        result.summary ||
+        "Bonjour ! Que puis-je faire pour vous aujourd'hui ?";
+    }
+
+    if (output.summary && output.summary.trim() !== "") {
+      await saveMessage({
+        threadId: thread_id,
+        userId,
+        userRole: role,
+        role: "assistant",
+        content: output.summary,
+        agence,
+        language,
+        correctionAttempts: result.correctionAttempts ?? 0,
+        report: output.report,
+        chartConfig: output.chartConfig,
+      });
+    }
+    const executionTimeMs = Date.now() - startTime;
+    const audit = extractAuditMetrics(result);
 
     console.log("[API /ask] ✅ Graphe terminé directement");
-    res.status(200).json({ status: "completed", thread_id });
+    res.status(200).json({
+      status: result.isBlocked ? "blocked" : "completed",
+      ...output,
+      audit: {
+        ...audit,
+        executionTimeMs,
+        executionTimeSec: (executionTimeMs / 1000).toFixed(2),
+        timestamp: new Date().toISOString(),
+        threadId: thread_id,
+      },
+    });
+    // res.status(200).json({ status: "completed", thread_id });
   } catch (err: any) {
     console.error("[API /ask] 🚨 Erreur inattendue :", err.message);
     res.status(500).json({ success: false, error: err.message });
@@ -202,6 +240,15 @@ export const handleAgentResume = async (
     const output = extractAgentOutput(result);
     console.log("[Output]", output);
 
+    if (result.isChitchat === true) {
+      console.log(
+        "[API /ask] 💬 Traitement d'une réponse de politesse (Chitchat)",
+      );
+      // Si extractAgentOutput ne l'a pas capturé, on force le message extrait du nœud
+      output.summary =
+        result.summary || "Bonjour ! Que puis-je faire pour vous aujourd'hui ?";
+    }
+
     // ── Publication automatique dans Superset ──────────────────────────────
     let supersetPublish: {
       success: boolean;
@@ -289,6 +336,7 @@ export const handleAgentResume = async (
     }
 
     const audit = extractAuditMetrics(result);
+    console.log("Output of agent response ", output);
 
     res.status(200).json({
       status: result.isBlocked ? "blocked" : "completed",

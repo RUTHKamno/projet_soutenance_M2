@@ -90,7 +90,7 @@ export function extractAgentOutput(result: any) {
         if (typeof content === "string" && content.trim().length > 0) {
           lastAISummary = content;
           console.log(
-            `   ✅ Résumé textuel extrait (String) : "${lastAISummary.substring(0, 60)}..."`,
+            `   ✅ Résumé textuel extrait (String) : "${lastAISummary.substring(0, 100)}..."`,
           );
         } else if (Array.isArray(content)) {
           console.log(
@@ -244,6 +244,7 @@ export function extractAgentOutput(result: any) {
     JSON.stringify(
       {
         summaryLength: finalOutput.summary ? finalOutput.summary.length : 0,
+        summaryText: finalOutput.summary,
         hasChartConfig: finalOutput.chartConfig !== null,
         hasReport: finalOutput.report !== null,
         reformulatedQuestion: finalOutput.reformulatedQuestion,
