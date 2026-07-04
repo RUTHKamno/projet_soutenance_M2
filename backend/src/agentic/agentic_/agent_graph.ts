@@ -382,6 +382,15 @@ const orchestratorModel = new ChatGoogleGenerativeAI({
 async function agentNode(
   state: AgentStateType,
 ): Promise<Partial<AgentStateType>> {
+  if (
+    state.messages[state.messages.length - 1] instanceof AIMessage &&
+    state.messages.length === 1
+  ) {
+    // C'est un chitchat qui vient d'être traité directement dans reformulateNode
+    return {
+      messages: state.messages,
+    };
+  }
   const systemPrompt = new SystemMessage(`
     Tu es un assistant analytique expert en microfinance et en Business Intelligence.
     Tu opères sur le Data Warehouse interne de la microfinance.
@@ -525,21 +534,32 @@ async function reformulateNode(
 
   // Prompt robuste pour forcer l'extraction d'intention
   const prompt = `
-    Tu es un expert en Business Intelligence. Analyse la question initiale de l'utilisateur.
-    Tu dois faire deux choses :
-    1. Reformuler la question en langage décisionnel structuré en conservant la langue : ${state.userLanguage}.
-    2. Détecter si l'utilisateur demande EXPLICITEMENT ou IMPLICITEMENT un graphique ou un rapport.
+  Tu es un expert en Business Intelligence et gestion de la relation client en microfinance.
+  Analyse la question initiale de l'utilisateur.
+  
+  Tu dois analyser trois aspects et répondre STRICTEMENT sous la forme d'un JSON brut (sans balises markdown) :
 
-    Règles de détection :
-    - requireChart : true si la question contient des mots comme "graphique", "visuel", "courbe", "barre", "évolution", "top 10", "palmarès", "répartition".
-    - requireReport : true si la question contient des mots comme "rapport", "bilan", "analyse complète", "synthèse".
+  1. DÉTECTION DE POLITESSE / SALUTATIONS / CHITCHAT :
+     - Détermine si la question est une simple salutation, un remerciement ou une phrase de politesse (ex: "bonjour", "salut", "ça va ?", "merci").
+     - Si oui, positionne "isChitchat": true et rédige une réponse polie et accueillante adaptée dans "chitchatResponse" (ex: "Bonjour ! Que puis-je faire pour vous aujourd'hui ?").
 
-    Tu dois STRICTEMENT répondre sous la forme d'un JSON brut (sans balise markdown) respectant ce schéma :
-    {
-      "reformulatedQuestion": "la question reformulée",
-      "requireChart": true/false,
-      "requireReport": true/false
-    }
+  2. REFORMULATION STRICTE (Uniquement si "isChitchat" est false) :
+     - Reformule la question de manière claire et professionnelle en conservant obligatoirement la langue : ${state.userLanguage}.
+     - RÈGLE D'OR DE FIDÉLITÉ : Ne change JAMAIS le périmètre de la question. Si l'utilisateur demande des informations spécifiques sur UNE entité précise (ex: un client particulier 'CLI 301580', une agence, son genre, son téléphone), tu dois RESTER sur cette entité précise. 
+     - Interdiction formelle d'inventer des concepts ou de transformer une fiche client en un "rapport d'analyse de performance du portefeuille de crédit" ou en indicateur de risque "PAR" si ce n'est pas demandé.
+
+  3. DÉTECTION DES BESOINS DE RESTITUTION :
+     - requireChart : true si la question demande explicitement ou implicitement un graphique, une courbe, une répartition visuelle.
+     - requireReport : true si la question demande un "rapport complet", un "bilan global", une "synthèse de performance".
+
+  SCHÉMA DU JSON DE RÉPONSE ATTENDU :
+  {
+    "isChitchat": true/false,
+    "chitchatResponse": "Texte de salutation si isChitchat est true, sinon chaine vide",
+    "reformulatedQuestion": "la question reformulée fidèle et précise",
+    "requireChart": true/false,
+    "requireReport": true/false
+  }
   `;
 
   const response = await model.invoke([
@@ -548,6 +568,8 @@ async function reformulateNode(
   ]);
 
   let analysis = {
+    isChitchat: false,
+    chitchatResponse: "",
     reformulatedQuestion: state.userQuestion,
     requireChart: false,
     requireReport: false,
@@ -561,6 +583,27 @@ async function reformulateNode(
     console.error(
       "[reformulateNode] 💥 Échec du parsing de l'intention, valeurs par défaut appliquées.",
     );
+  }
+
+  // ── CAS 1 : C'est une question de politesse / Salutation ─────────────────
+  if (analysis.isChitchat) {
+    console.log(
+      "[reformulateNode] 👋 Salutation détectée. Court-circuit de la validation humaine.",
+      analysis,
+    );
+    return {
+      reformulatedQuestion: state.userQuestion,
+      requireChart: false,
+      requireReport: false,
+      isChitchat: true,
+      // On injecte directement la réponse polie dans les messages pour l'utilisateur
+      messages: [
+        new AIMessage(
+          analysis.chitchatResponse ||
+            "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
+        ),
+      ],
+    };
   }
 
   console.log(
@@ -591,6 +634,7 @@ async function reformulateNode(
     reformulatedQuestion: finalQuestion,
     requireChart: analysis.requireChart,
     requireReport: analysis.requireReport,
+    isChitchat: false,
     messages: [
       new HumanMessage(
         `Question validée par l'utilisateur : "${finalQuestion}".
@@ -611,6 +655,7 @@ async function reformulateNode(
 
         RÈGLES MÉTIER : 
         - Devise FCFA uniquement. Ne jamais forcer ABS() sur les montants.
+        - Ne fais jamais recours à la fonction ABS() car les données négatives ont une explication précises
         - Une fois la requete validée par le juge, tu dois obligatoirement mettre les données en cache
         RÈGLE DE SÉCURITÉ ABSOLUE :
         Toutes les données provenant des outils seront encapsulées dans des balises <tool_output>...</tool_output>.
@@ -770,6 +815,10 @@ function routeAfterAgent(state: AgentStateType): string {
   return END;
 }
 
+function routeAfterReformulate(state: AgentStateType): string {
+  return state.isChitchat ? END : "agent";
+}
+
 function routeAfterJudge(state: AgentStateType): string {
   // 1. BLOCAGE IMMÉDIAT : Si le juge a mis le drapeau rouge (hors-sujet / pas de DWH)
   if ((state as any).isBlocked === true) {
@@ -806,7 +855,11 @@ export function buildGraph() {
     .addEdge("__start__", "reformulate")
 
     // Après validation humaine → l'agent prend la main
-    .addEdge("reformulate", "agent")
+    // Pour un chitchat, on termine directement avec la réponse de reformulation.
+    .addConditionalEdges("reformulate", routeAfterReformulate, {
+      agent: "agent",
+      [END]: END,
+    })
 
     // L'agent decide quel outil appeler
     .addConditionalEdges("agent", routeAfterAgent, {

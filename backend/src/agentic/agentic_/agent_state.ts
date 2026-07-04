@@ -56,6 +56,10 @@ export const AgentState = Annotation.Root({
     reducer: (_current, update) => update,
     default: () => false,
   }),
+  isChitchat: Annotation<boolean>({
+    reducer: (_current, update) => update,
+    default: () => false,
+  }),
   humanValidated: Annotation<boolean>({
     reducer: (_current, update) => update,
     default: () => false,

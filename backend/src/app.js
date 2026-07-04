@@ -15,7 +15,6 @@ console.log(
     ? process.env.GEMINI_API_KEY.substring(0, 10) + "..."
     : "AUCUNE CLÉ",
 );
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 

@@ -3,13 +3,18 @@ import { StateAnnotation } from "./state.js";
 import { getDwhContext } from "./ragService.js";
 import { getSecurityConstraints } from "./rbacService.js";
 // insertion du cache dans l'agent SQL pour éviter les appels redondants à Gemini sur des questions similaires
-import { getCacheExact, getCacheSemantic, setCacheEntry } from "../cache/sqlCache.js";
+import {
+  getCacheExact,
+  getCacheSemantic,
+  setCacheEntry,
+} from "../cache/sqlCache.js";
 
 // Initialisation de Gemini 2.5 Flash-lite pour la génération SQL
 const model = new ChatGoogleGenerativeAI({
-  modelName: "gemini-3.1-flash-lite",
+  // modelName: "gemini-3.1-flash-lite",
+  modelName: "gemini-2.5-pro",
   temperature: 0.0, // Température à 0 pour une rigueur mathématique et éviter toute créativité sur le SQL
-  apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+  apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
 });
 
 /**
@@ -18,7 +23,9 @@ const model = new ChatGoogleGenerativeAI({
  */
 export async function agentSql(state: typeof StateAnnotation.State) {
   console.log("\n[Node : Agent SQL] --- Début de la phase génération SQL ---");
-  console.log(`[Node : Agent SQL] Question validée exploitée : "${state.reformulatedQuestion}"`);
+  console.log(
+    `[Node : Agent SQL] Question validée exploitée : "${state.reformulatedQuestion}"`,
+  );
 
   try {
     // ─── NIVEAU 1 : LLM generate SQL ────────────────────────────────────────
@@ -66,15 +73,22 @@ export async function agentSql(state: typeof StateAnnotation.State) {
       `;
 
     // 2. Récupération des contraintes de sécurité dynamiques (RBAC) depuis le fichier JSON
-    const contraintesSecurite = getSecurityConstraints(state.userRole, state.userContextInfo);
+    const contraintesSecurite = getSecurityConstraints(
+      state.userRole,
+      state.userContextInfo,
+    );
 
     //-----------------------------------------------------------------------------
-    
-    console.log(`[Node : Agent SQL] Application des filtres de sécurité pour le rôle : ${state.userRole}`);
+
+    console.log(
+      `[Node : Agent SQL] Application des filtres de sécurité pour le rôle : ${state.userRole}`,
+    );
 
     let blocCorrectionJudge = "";
     if (state.judgeEvaluation && state.judgeEvaluation.isValid === false) {
-      console.log(`[Node : Agent SQL] 🔧 Tentative de correction suite au retour du Judge.`);
+      console.log(
+        `[Node : Agent SQL] 🔧 Tentative de correction suite au retour du Judge.`,
+      );
       blocCorrectionJudge = `
         ⚠️ ATTENTION : Tu as déjà généré une requête précédemment, mais elle a été REJETÉE par le Judge pour l'erreur suivante :
         🔴 PROBLÈME SQL     : ${state.judgeEvaluation.feedback}
@@ -86,7 +100,7 @@ export async function agentSql(state: typeof StateAnnotation.State) {
     }
 
     // 3. Rédaction du prompt système spécialisé incluant la sécurité et le contexte
-      const prompt = `
+    const prompt = `
     Tu es l'Agent SQL de notre architecture décisionnelle de microfinance.
     Ton rôle unique et strict est de traduire la question validée de l'utilisateur
     en une requête SQL valide (PostgreSQL), performante et hautement sécurisée,
@@ -198,10 +212,17 @@ export async function agentSql(state: typeof StateAnnotation.State) {
 
     // 4. Envoi du prompt blindé à Gemini
     const response = await model.invoke([
-      { role: "system", content: "Tu es un expert SQL. Tu réponds exclusivement en JSON strict, sans markdown." },
-      { role: "user", content: prompt }
+      {
+        role: "system",
+        content:
+          "Tu es un expert SQL. Tu réponds exclusivement en JSON strict, sans markdown.",
+      },
+      { role: "user", content: prompt },
     ]);
-    let clean = (response.content as string).trim().replace(/```json|```/g, "").trim();
+    let clean = (response.content as string)
+      .trim()
+      .replace(/```json|```/g, "")
+      .trim();
     const parsed = JSON.parse(clean);
 
     // ─── Vérification sécurité côté code (double filet) ───────────────────────
@@ -211,15 +232,23 @@ export async function agentSql(state: typeof StateAnnotation.State) {
         generatedSQL: "REJECTED_BY_SECURITY",
         suggestedVisualization: "text_report",
         ragContext: contexteDwh,
-        sqlFromCache:           false,
+        sqlFromCache: false,
       };
     }
 
-    console.log(`[AgentSQL] ✅ SQL généré : ${JSON.stringify(parsed.queries, null, 2)}`);
-    console.log(`[AgentSQL] 📊 Visualisation : ${parsed.queries[0].visualisation}`);
-    console.log(`[AgentSQL] 💬 Justification : ${parsed.queries[0].justification}`);
+    console.log(
+      `[AgentSQL] ✅ SQL généré : ${JSON.stringify(parsed.queries, null, 2)}`,
+    );
+    console.log(
+      `[AgentSQL] 📊 Visualisation : ${parsed.queries[0].visualisation}`,
+    );
+    console.log(
+      `[AgentSQL] 💬 Justification : ${parsed.queries[0].justification}`,
+    );
 
-    console.log(`[Node : Agent SQL] 💾 Requête SQL sécurisée générée avec succès.`);
+    console.log(
+      `[Node : Agent SQL] 💾 Requête SQL sécurisée générée avec succès.`,
+    );
 
     // 5. On enrichit notre fiche de suivi centrale en augmentant le compteur
     const currentRetries = state.sqlRetryCount || 0;
@@ -229,14 +258,16 @@ export async function agentSql(state: typeof StateAnnotation.State) {
       ragContext: contexteDwh,
       generatedSQL: parsed.queries[0].sql,
       suggestedVisualization: parsed.queries[0].visualisation,
-      sqlFromCache:           false,
-      sqlQueries:             parsed.queries,   // ← toutes les requêtes
-      isMultiQuery:           parsed.isMultiQuery,
+      sqlFromCache: false,
+      sqlQueries: parsed.queries, // ← toutes les requêtes
+      isMultiQuery: parsed.isMultiQuery,
       sqlRetryCount: currentRetries + 1, // 🔄 On incrémente le nombre de passes
     };
-
   } catch (error) {
-    console.error("[Node : Agent SQL] ❌ Erreur lors de l'exécution du nœud SQL :", error);
+    console.error(
+      "[Node : Agent SQL] ❌ Erreur lors de l'exécution du nœud SQL :",
+      error,
+    );
     throw error;
   }
 }

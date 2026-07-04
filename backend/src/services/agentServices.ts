@@ -195,6 +195,7 @@ export function extractAgentOutput(result: any) {
 
   // ----- Extraction sécurisée de tool_execute_query (SQL) -----
   const execRaw = toolResults["tool_execute_query"]?.at(-1);
+  console.log("[ExecRaw]", execRaw);
   let queryResult: { columns: string[]; rows: any[] } | null = null;
   if (execRaw) {
     try {

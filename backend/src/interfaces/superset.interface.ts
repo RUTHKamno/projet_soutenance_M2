@@ -61,3 +61,16 @@ export interface SupersetChartCreationResult {
   result?: Record<string, unknown>;
   [key: string]: unknown;
 }
+
+export function inferColumns(
+  columns: string[],
+  sampleRow: Record<string, unknown>,
+) {
+  const dimensionColumn =
+    columns.find((c) => typeof sampleRow[c] !== "number") ?? columns[0];
+  const metricColumn =
+    columns.find((c) => typeof sampleRow[c] === "number") ??
+    columns[1] ??
+    columns[0];
+  return { dimensionColumn, metricColumn };
+}

@@ -202,42 +202,40 @@ export const handleAgentResume = async (
     const output = extractAgentOutput(result);
     console.log("[Output]", output);
 
+    // ── Publication automatique dans Superset ──────────────────────────────
+    let supersetPublish: {
+      success: boolean;
+      message: string;
+      chartId?: number;
+    } | null = null;
+
     if (
-      result.isBlocked === true &&
-      (!output.summary || output.summary.trim() === "")
+      !result.isBlocked &&
+      output.chartConfig &&
+      output.queryResult &&
+      output.queryResult.rows &&
+      output.queryResult.rows.length > 0
     ) {
-      output.summary =
-        "Désolé, cette demande a été rejetée par le système d'audit car elle est hors-sujet et n'interroge pas le Data Warehouse.";
-    }
-
-    // 📌 AUTOMATISATION SUPERSET 📌
-    let supersetChartId = null;
-    let supersetPublishStatus = null;
-
-    if (!result.isBlocked && output.chartConfig && output.queryResult) {
       try {
-        console.log(
-          "[Superset Auto] 🚀 Graphique détecté. Initialisation de la publication automatique...",
+        const defaultDashboardId = parseInt(
+          process.env.SUPERSET_DEFAULT_DASHBOARD_ID || "1",
+          10,
         );
 
-        const DEFAULT_DASHBOARD_ID = 1; // Ton dashboard cible par défaut
+        console.log(
+          `[Superset Auto-Publish] 📌 Graphique détecté. Publication dans le Dashboard ID: ${defaultDashboardId}...`,
+        );
 
-        // Inférence des colonnes à la volée
         const { dimensionColumn, metricColumn } = inferColumns(
           output.queryResult.columns,
           output.queryResult.rows[0],
         );
 
-        console.log(
-          `[Superset Auto] 📊 Dimension: "${dimensionColumn}" | Métrique: "${metricColumn}"`,
-        );
-
-        // Publication directe sans attendre d'action utilisateur
         const chartResult = await SupersetService.addChartToDashboard({
-          dashboardId: DEFAULT_DASHBOARD_ID,
+          dashboardId: defaultDashboardId,
           chartTitle:
             output.chartConfig?.title?.text ||
-            `Graphique Agent - Thread ${thread_id.substring(0, 8)}`,
+            `Graphique - ${new Date().toLocaleString("fr-FR")}`,
           sqlQuery: result.validatedSqlQuery || result.lastSqlJson,
           vizKind: mapChartTypeToVizKind(output.chartConfig),
           columns: output.queryResult.columns,
@@ -245,25 +243,33 @@ export const handleAgentResume = async (
           dimensionColumn,
         });
 
-        supersetChartId = chartResult?.id;
-        supersetPublishStatus = {
+        supersetPublish = {
           success: true,
-          message: `Publié automatiquement dans le dashboard #${DEFAULT_DASHBOARD_ID}`,
+          message: "Graphique publié automatiquement dans Superset.",
+          chartId: chartResult?.id,
         };
+
         console.log(
-          `[Superset Auto] 🎉 Succès ! Graphique inséré avec l'ID Superset : ${supersetChartId}`,
+          `[Superset Auto-Publish] 🎉 Chart créé avec succès (ID: ${chartResult?.id}).`,
         );
-      } catch (supersetErr: any) {
-        // Sécurisé par un bloc try/catch pour que si Superset crash, le message soit quand même renvoyé/sauvegardé
+      } catch (supersetError: any) {
         console.error(
-          "[Superset Auto] 🚨 Échec de la publication automatique :",
-          supersetErr.message,
+          "[Superset Auto-Publish] ❌ Échec de la publication :",
+          supersetError.message,
         );
-        supersetPublishStatus = {
+        supersetPublish = {
           success: false,
-          message: `Échec publication auto: ${supersetErr.message}`,
+          message: "Échec de la publication automatique dans Superset.",
         };
       }
+    }
+
+    if (
+      result.isBlocked === true &&
+      (!output.summary || output.summary.trim() === "")
+    ) {
+      output.summary =
+        "Désolé, cette demande a été rejetée par le système d'audit car elle est hors-sujet et n'interroge pas le Data Warehouse.";
     }
 
     // ── Sauvegarder la réponse finale de l'agent ──────────────────────────
@@ -287,6 +293,7 @@ export const handleAgentResume = async (
     res.status(200).json({
       status: result.isBlocked ? "blocked" : "completed",
       ...output, // le frontend reçoit des champs plats et directs
+      supersetPublish, // ← ajoute cette ligne
       audit: {
         ...audit,
         executionTimeMs,
