@@ -187,6 +187,12 @@ export const handleAgentResume = async (
     // ── On vérifie d'abord que le thread existe et est bien en attente ──────
     const snapshot = await compiledGraph.getState(config);
 
+    // 2. Définir la configuration enrichie avec la limite de récursion
+    const resumeConfig = {
+      ...config, // Garde ton thread_id actuel indispensable
+      recursionLimit: 50, // Augmente la limite de 25 à 50 transitions max
+    };
+
     if (!snapshot || snapshot.next.length === 0) {
       res.status(400).json({
         success: false,
@@ -211,7 +217,7 @@ export const handleAgentResume = async (
           correctedQuestion: correctedQuestion ?? "",
         },
       }),
-      config, // ← même thread_id que /ask
+      resumeConfig, // ← même thread_id que /ask
     );
 
     console.log("[DEBUG] result.validatedSqlQuery =", result.validatedSqlQuery);
@@ -250,6 +256,9 @@ export const handleAgentResume = async (
     }
 
     // ── Publication automatique dans Superset ──────────────────────────────
+    console.log(
+      "[Superset Auto-Publish] 🔄 Vérification de la possibilité de publication...",
+    );
     let supersetPublish: {
       success: boolean;
       message: string;
@@ -264,6 +273,9 @@ export const handleAgentResume = async (
       output.queryResult.rows.length > 0
     ) {
       try {
+        console.log(
+          "[Superset Auto-Publish] 📊 Graphique détecté. Tentative de publication...",
+        );
         const defaultDashboardId = parseInt(
           process.env.SUPERSET_DEFAULT_DASHBOARD_ID || "1",
           10,
@@ -278,12 +290,25 @@ export const handleAgentResume = async (
           output.queryResult.rows[0],
         );
 
+        console.log(
+          "[DEBUG] SQL envoyé à Superset:",
+          result.validatedSqlQuery || result.lastSqlJson,
+        );
+        console.log(
+          "[DEBUG] Colonnes du résultat exécuté:",
+          output.queryResult.columns,
+        );
+
         const chartResult = await SupersetService.addChartToDashboard({
           dashboardId: defaultDashboardId,
           chartTitle:
             output.chartConfig?.title?.text ||
             `Graphique - ${new Date().toLocaleString("fr-FR")}`,
-          sqlQuery: result.validatedSqlQuery || result.lastSqlJson,
+          // sqlQuery: result.validatedSqlQuery || result.lastSqlJson,
+          sqlQuery:
+            result.executedSqlQuery ||
+            result.validatedSqlQuery ||
+            result.lastSqlJson,
           vizKind: mapChartTypeToVizKind(output.chartConfig),
           columns: output.queryResult.columns,
           metricColumn,
@@ -311,6 +336,7 @@ export const handleAgentResume = async (
       }
     }
 
+    // ── Gestion du cas où l'agent est bloqué et n'a pas produit de résumé ──
     if (
       result.isBlocked === true &&
       (!output.summary || output.summary.trim() === "")
@@ -407,7 +433,11 @@ export const handlePublishToSuperset = async (
       const output = extractAgentOutput(result);
       chartConfig = output.chartConfig;
       queryResult = output.queryResult;
-      sqlQuery = result.validatedSqlQuery || result.lastSqlJson;
+      // sqlQuery = result.validatedSqlQuery || result.lastSqlJson;
+      sqlQuery =
+        result.executedSqlQuery ||
+        result.validatedSqlQuery ||
+        result.lastSqlJson;
     }
 
     // ── PLAN B : Secours via l'historique des messages (BDD) ────────────────

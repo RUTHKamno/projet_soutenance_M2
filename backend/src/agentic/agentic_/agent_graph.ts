@@ -232,6 +232,7 @@ const toolExecuteQuery = tool(
         rowCount: result.rows.length,
         rows: result.rows.slice(0, 10),
         columns: result.fields.map((f) => f.name),
+        executedSqlQuery: sql,
       });
     } catch (error: any) {
       return JSON.stringify({ success: false, error: error.message });
@@ -719,6 +720,7 @@ async function toolsNode(
   const toolCalls = lastMessage.tool_calls ?? [];
   const resultMessages: ToolMessage[] = [];
   let newSqlJson = state.lastSqlJson;
+  let newExecutedSqlQuery = state.executedSqlQuery; // ← ajoute cette ligne
 
   for (const toolCall of toolCalls) {
     const toolFn = TOOLS_MAP[toolCall.name];
@@ -737,6 +739,20 @@ async function toolsNode(
       // Capture le SQL sans pousser le ToolMessage : le judgeNode s'en charge
       newSqlJson = result;
     } else {
+      // ── Capture le SQL réellement exécuté ────────────────────────────
+      if (toolCall.name === "tool_execute_query") {
+        try {
+          const parsed = JSON.parse(result);
+          if (parsed.success && parsed.executedSqlQuery) {
+            newExecutedSqlQuery = parsed.executedSqlQuery;
+          }
+        } catch {
+          console.warn(
+            "[toolsNode] Impossible de parser le résultat de tool_execute_query pour en extraire le SQL.",
+          );
+        }
+      }
+
       const securedContent = `<${toolCall.name}>\n${result}\n</${toolCall.name}>`;
       resultMessages.push(
         new ToolMessage({
@@ -748,7 +764,11 @@ async function toolsNode(
     }
   }
 
-  return { messages: resultMessages, lastSqlJson: newSqlJson };
+  return {
+    messages: resultMessages,
+    lastSqlJson: newSqlJson,
+    executedSqlQuery: newExecutedSqlQuery, // ← ajoute cette ligne
+  };
 }
 
 // ── Conditions de routing ─────────────────────────────────────────────────────

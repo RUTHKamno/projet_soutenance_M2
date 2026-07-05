@@ -292,3 +292,17 @@ export async function listDashboards(): Promise<
 
   return dashboards;
 }
+
+export async function listDatabases(): Promise<{ id: string; name: string }[]> {
+  const headers = await buildHeaders();
+  const res = await fetch(`${SUPERSET_URL}/api/v1/database/`, { headers });
+  if (!res.ok)
+    throw new Error(`[Superset] List databases failed ${res.status}`);
+  const data = (await res.json()) as any;
+  const dbs = (data.result ?? []).map((d: any) => ({
+    id: String(d.id),
+    name: d.database_name,
+  }));
+  dbs.forEach((d: any) => console.log(`  - [${d.id}] ${d.name}`));
+  return dbs;
+}

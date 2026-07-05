@@ -195,16 +195,42 @@ export function extractAgentOutput(result: any) {
 
   // ----- Extraction sécurisée de tool_execute_query (SQL) -----
   const execRaw = toolResults["tool_execute_query"]?.at(-1);
-  console.log("[ExecRaw]", execRaw);
+  console.log(
+    "-------------------------------------------------------[ExecRaw]-------------------------------------------------------",
+    execRaw,
+  );
+
   let queryResult: { columns: string[]; rows: any[] } | null = null;
+
   if (execRaw) {
     try {
-      const parsed = JSON.parse(execRaw);
+      // ── NETTOYAGE DES BALISES XML ──
+      // On retire <tool_execute_query> et </tool_execute_query> ainsi que les espaces inutiles
+      const cleanJsonString = execRaw
+        .replace(/<tool_execute_query>/g, "")
+        .replace(/<\/tool_execute_query>/g, "")
+        .trim();
+
+      // ── PARSING DU JSON PROPRE ──
+      const parsed = JSON.parse(cleanJsonString);
       if (parsed.success) {
         queryResult = { columns: parsed.columns, rows: parsed.rows };
+      } else {
+        console.error(
+          "[Extraction] L'exécution SQL a retourné success: false",
+          parsed.error,
+        );
       }
-    } catch {}
+    } catch (parseError) {
+      console.error(
+        "[Extraction] Échec critique du parsing JSON. Chaîne brute reçue :",
+        execRaw,
+        parseError,
+      );
+    }
   }
+
+  console.log("[Extraction Result] queryResult =", queryResult);
 
   // ── Extraction sécurisée du rapport (tool_write_report) ──
   const reportRaw = toolResults["tool_write_report"]?.at(-1);

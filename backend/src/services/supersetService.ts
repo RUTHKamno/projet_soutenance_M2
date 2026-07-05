@@ -12,7 +12,7 @@ const SUPERSET_ADMIN_USERNAME = process.env.SUPERSET_ADMIN_USERNAME || "admin";
 const SUPERSET_ADMIN_PASSWORD = process.env.SUPERSET_ADMIN_PASSWORD || "admin";
 // L'ID de ta base de données (Data Warehouse) telle qu'enregistrée dans Superset
 // const SUPERSET_DATABASE_ID = parseInt(process.env.DASHBOARD_ID || "1", 10);
-const SUPERSET_DATABASE_ID = 2;
+const SUPERSET_DATABASE_ID = 1;
 export const SupersetService = {
   /**
    * Étape A : Authentification auprès de l'API REST de Superset

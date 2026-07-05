@@ -9,6 +9,7 @@ import {
   handlePublishToSuperset,
 } from "../controllers/agent.controller.js";
 import { getUserHistory } from "../services/chatHistoryService.js";
+import { listDatabases } from "../services/supersetClient.js";
 
 const router = Router();
 
@@ -32,6 +33,8 @@ router.get(
   },
 );
 router.post("/publish-superset", checkAuth, handlePublishToSuperset);
+
+router.get("/dashboard-list", checkAuth, listDatabases);
 
 // router.post("/analyze",checkAuth, handleAgentAnalysis);
 

@@ -88,6 +88,11 @@ export const AgentState = Annotation.Root({
     reducer: (_current, update) => update,
     default: () => "",
   }),
+
+  executedSqlQuery: Annotation<string>({
+    reducer: (_current, update) => update,
+    default: () => "",
+  }),
 });
 
 export type AgentStateType = typeof AgentState.State;
