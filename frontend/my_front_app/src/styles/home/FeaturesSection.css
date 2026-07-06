@@ -1,0 +1,25 @@
+.featureCard {
+    background: #fff;
+    border: 1.5px solid rgba(139,90,43,0.15);
+    border-radius: 14;
+    padding: 32px 28px;
+    cursor: default;
+    transition: all 0.3s ease;
+  }
+  .featureIcon
+  { 
+    font-size: 32;
+    margin-bottom: 16;
+ }
+  .featureTitle 
+  { 
+    font-size: 17; 
+    font-weight: 700;
+    color: #2c1a0e;
+    margin-bottom: 10;
+ }
+  .featureDesc
+  { font-size: 14;
+    color: #7a6555;
+    line-height: 1.7 
+  }

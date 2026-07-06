@@ -1,0 +1,22 @@
+.a-propos-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  font-family: "Poppins", sans-serif;
+  color: #4a4433;
+}
+
+.a-propos-content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-top: 40px;
+}
+
+.a-propos-error {
+  color: #b3541e;
+  background: #fbeee0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  text-align: center;
+}

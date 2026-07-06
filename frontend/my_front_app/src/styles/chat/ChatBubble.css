@@ -1,0 +1,525 @@
+.bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  animation: bubbleIn 0.3s ease;
+}
+
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bubble-user {
+  flex-direction: row-reverse;
+}
+
+.bubble-user .bubble-content {
+  background: #8a7e03;
+  color: #fff;
+  border-radius: 18px 18px 4px 18px;
+  padding: 10px 14px;
+  max-width: 80%;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.bubble-assistant .bubble-content {
+  background: #fff;
+  color: #1d1b17;
+  border-radius: 18px 18px 18px 4px;
+  padding: 10px 14px;
+  max-width: 80%;
+  font-size: 13.5px;
+  line-height: 1.6;
+  border: 1px solid rgba(138, 126, 3, 0.15);
+}
+
+.bubble-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #8a7e03;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Align meta row under the bubble content (after the avatar) */
+.bubble-meta-row {
+  display: flex;
+  width: 100%;
+  margin-left: 42px; /* avatar width (32) + gap (10) */
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.bubble-error {
+  background: rgba(180, 40, 40, 0.08);
+  border: 1px solid rgba(180, 40, 40, 0.2);
+  color: #a82a2a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+/* Reformulation */
+.bubble-reformulation {
+  background: #fefbf2;
+  border: 1.5px solid rgba(138, 126, 3, 0.3);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  animation: bubbleIn 0.3s ease;
+}
+
+.bubble-reformulation-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a7e03;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 6px;
+}
+
+.bubble-reformulation-text {
+  font-size: 13.5px;
+  color: #1d1b17;
+  font-style: italic;
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.bubble-reformulation-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.bubble-btn-approve,
+.bubble-btn-reject {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bubble-btn-approve {
+  background: #8a7e03;
+  color: #fff;
+}
+
+.bubble-btn-approve:hover {
+  background: #6b6203;
+  transform: translateY(-1px);
+}
+
+.bubble-btn-reject {
+  background: transparent;
+  color: #1d1b17;
+  border: 1.5px solid rgba(31, 27, 22, 0.2);
+}
+
+.bubble-btn-reject:hover {
+  background: rgba(31, 27, 22, 0.05);
+}
+/* Bouton Annuler (visuel discret mais distinct) */
+.bubble-btn-cancel {
+  background: transparent;
+  border: 1px dashed rgba(31, 27, 22, 0.12);
+  color: rgba(31, 27, 22, 0.8);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.bubble-btn-cancel:hover {
+  background: rgba(31, 27, 22, 0.04);
+  transform: translateY(-1px);
+}
+.bubble-error-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bubble-retry-btn {
+  background: rgba(180, 40, 40, 0.1);
+  border: 1px solid rgba(180, 40, 40, 0.3);
+  color: #a82a2a;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.bubble-retry-btn:hover {
+  background: rgba(180, 40, 40, 0.18);
+  transform: translateY(-1px);
+}
+
+.bubble-export-btn {
+  display: inline-block;
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid rgba(138, 126, 3, 0.3);
+  color: #8a7e03;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bubble-export-btn:hover {
+  background: rgba(138, 126, 3, 0.08);
+  transform: translateY(-1px);
+}
+
+.bubble-retry-user {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 6px;
+  display: block;
+}
+
+.bubble-retry-user:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Rapport card ── */
+.bubble-report-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fefbf2;
+  border: 1.5px solid rgba(138, 126, 3, 0.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+
+.bubble-report-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.bubble-report-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bubble-report-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1d1b17;
+}
+
+.bubble-report-sub {
+  font-size: 11.5px;
+  color: #8a7e03;
+}
+
+.bubble-report-dl {
+  background: #8a7e03;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bubble-report-dl:hover {
+  background: #6b6203;
+  transform: translateY(-1px);
+}
+
+/* ── Chart preview ── */
+.bubble-chart-preview {
+  margin-top: 10px;
+  border: 1.5px solid rgba(138, 126, 3, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chart-expanded {
+  position: fixed;
+  top: 10vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80vw;
+  max-width: 900px;
+  z-index: 500;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+}
+
+.bubble-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #fefbf2;
+  border-bottom: 1px solid rgba(138, 126, 3, 0.12);
+}
+
+.bubble-chart-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1d1b17;
+}
+
+.bubble-chart-btn {
+  background: transparent;
+  border: 1px solid rgba(138, 126, 3, 0.3);
+  color: #8a7e03;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bubble-chart-btn:hover {
+  background: rgba(138, 126, 3, 0.08);
+}
+
+.bubble-table-actions {
+  margin-top: 12px;
+  border: 1px solid rgba(138, 126, 3, 0.18);
+  border-radius: 12px;
+  background: #fdfbf2;
+  padding: 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.bubble-table-label {
+  font-weight: 700;
+  color: #1d1b17;
+  font-size: 12px;
+}
+
+.bubble-table-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Actions légères sous chaque message (copier / éditer) */
+.bubble-meta-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.meta-icon {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition:
+    background 0.12s ease,
+    transform 0.08s ease;
+}
+.meta-icon:hover {
+  background: rgba(31, 27, 22, 0.04);
+  transform: translateY(-1px);
+}
+
+.bubble-chart-placeholder {
+  padding: 30px;
+  text-align: center;
+  color: #8a7e03;
+  font-size: 13px;
+  background: #fefbf2;
+}
+
+/* ── Actions bas de bulle ── */
+.bubble-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Container de base du graphique dans la bulle */
+.bubble-chart-container {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.bubble-chart-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.bubble-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.bubble-chart-body {
+  padding: 12px;
+  background: #ffffff;
+}
+
+/* 🌟 STYLE MAGIQUE : Le mode Agrandir (Lightbox/Modal) */
+.chart-fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6); /* assombrit le chat en arrière-plan */
+  backdrop-filter: blur(4px);
+}
+
+.bubble-chart-card.expanded {
+  position: relative;
+  width: 85vw;
+  max-width: 900px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: zoomIn 0.2s ease-out;
+}
+
+.bubble-reformulated-hint {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.bubble-reformulated-label {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  margin-right: 4px;
+}
+
+.bubble-reformulated-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-style: italic;
+}
+/* Style pour les tables générées par le Markdown dans le chat */
+.bubble-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 0.95rem;
+}
+
+.bubble-content th,
+.bubble-content td {
+  border: 1px solid #e2e8f0;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.bubble-content th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #334155;
+}
+
+.bubble-content tr:nth-child(even) {
+  background-color: #fdfdfd;
+}
+
+/* Espacement pour les titres et listes */
+.bubble-content h3 {
+  margin-top: 15px;
+  margin-bottom: 8px;
+  color: #1e293b;
+}
+
+.bubble-content ul {
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
+/* Garder la mise en page exacte du graphique ASCII / Blocs de texte */
+.bubble-text-summary pre {
+  background-color: #f1f5f9; /* Un fond gris clair discret */
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto; /* Permet le défilement horizontal si c'est trop large */
+  white-space: pre; /* Force le respect strict des sauts de ligne et espaces */
+  font-family: "Courier New", Courier, monospace; /* Police à chasse fixe */
+  font-size: 0.9rem;
+  color: #334155;
+  margin: 15px 0;
+  border: 1px solid #e2e8f0;
+}
+
+.bubble-text-summary code {
+  font-family: "Courier New", Courier, monospace;
+  background-color: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+@keyframes zoomIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

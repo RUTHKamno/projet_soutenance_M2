@@ -1,0 +1,22 @@
+.about-contact {
+  background: linear-gradient(135deg, #fdfaf0, #f6f1dd);
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 4px 16px rgba(138, 126, 3, 0.08);
+}
+
+.about-contact h2 {
+  color: #8a7e03;
+  margin-bottom: 16px;
+  font-size: 1.4rem;
+}
+
+.about-contact ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 1rem;
+  color: #5b5340;
+}

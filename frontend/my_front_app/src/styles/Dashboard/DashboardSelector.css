@@ -1,0 +1,47 @@
+.ds-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  background: #fff;
+  border-bottom: 1px solid rgba(138, 126, 3, 0.12);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.ds-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1d1b17;
+  white-space: nowrap;
+}
+
+.ds-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ds-tab {
+  background: transparent;
+  border: 1.5px solid rgba(138, 126, 3, 0.2);
+  color: #6b5344;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ds-tab:hover {
+  border-color: #8a7e03;
+  color: #8a7e03;
+  background: rgba(138, 126, 3, 0.05);
+}
+
+.ds-tab-active {
+  background: #8a7e03;
+  color: #fff;
+  border-color: #8a7e03;
+}

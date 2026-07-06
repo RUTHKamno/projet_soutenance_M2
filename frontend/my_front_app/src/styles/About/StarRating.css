@@ -1,0 +1,29 @@
+.star-rating {
+  display: flex;
+  gap: 4px;
+  font-size: 1.5rem;
+}
+
+.star {
+  color: #e3dcbd;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.star.filled {
+  color: #d7c98a;
+}
+
+.star-rating:not(.read-only) .star:hover {
+  transform: scale(1.15);
+}
+
+.star-rating.read-only .star {
+  cursor: default;
+}
+
+.star-rating.read-only .star.filled {
+  color: #8a7e03;
+}

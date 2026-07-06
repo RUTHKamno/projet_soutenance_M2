@@ -1,0 +1,54 @@
+/* ===========================
+   STATS SECTION
+=========================== */
+
+.stats-section {
+    background: #ffffff;
+    padding: 50px 30px 50px;
+    margin-top: -14px;
+    box-shadow: inset 0 1px 0 rgba(138, 126, 3, 0.08);
+}
+
+.stats-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+/* Tablettes */
+
+@media (max-width: 992px) {
+
+    .stats-container {
+
+        grid-template-columns: repeat(2, 1fr);
+
+    }
+
+}
+
+/* Téléphones */
+
+@media (max-width: 768px) {
+
+    .stats-section {
+
+        padding: 60px 25px;
+
+    }
+
+    .stats-container {
+
+        grid-template-columns: 1fr;
+
+        gap: 20px;
+
+    }
+
+}

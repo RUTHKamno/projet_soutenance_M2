@@ -1,0 +1,386 @@
+.auth-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  overflow: hidden;
+  padding: 40px 20px;
+}
+
+.auth-bg-zone {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 30px 80px rgba(31, 27, 22, 0.12);
+  padding: 48px 44px;
+  width: 100%;
+  max-width: 460px;
+  border: 1px solid rgba(138, 126, 3, 0.1);
+}
+
+.auth-card-wide {
+  max-width: 640px;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.auth-logo-icon {
+  font-size: 22px;
+}
+
+.auth-logo-text {
+  font-weight: 800;
+  font-size: 18px;
+  color: #1d1b17;
+}
+
+.auth-badge {
+  display: inline-block;
+  background: rgba(138, 126, 3, 0.1);
+  color: #8a7e03;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  border: 1px solid rgba(138, 126, 3, 0.25);
+}
+
+.auth-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #1d1b17;
+  margin: 0 0 8px;
+}
+
+.auth-subtitle {
+  color: #6b5344;
+  font-size: 14.5px;
+  line-height: 1.7;
+  margin: 0 0 28px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1d1b17;
+}
+
+.auth-field input,
+.auth-field select {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(138, 126, 3, 0.2);
+  font-size: 14.5px;
+  color: #1d1b17;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-field input:focus,
+.auth-field select:focus {
+  outline: none;
+  border-color: #8a7e03;
+  box-shadow: 0 0 0 3px rgba(138, 126, 3, 0.12);
+}
+
+.auth-field input:disabled,
+.auth-select-disabled {
+  background: #faf8f0;
+  color: #8a7e03;
+  font-weight: 700;
+  cursor: not-allowed;
+  border-color: rgba(138, 126, 3, 0.15);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 4px;
+  color: #8a7e03;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(138, 126, 3, 0.2);
+}
+
+.auth-submit {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.auth-actions .btn-secondary {
+  flex: 1;
+}
+
+.auth-actions .auth-submit {
+  flex: 2;
+  margin-top: 0;
+}
+
+.auth-error {
+  background: rgba(180, 40, 40, 0.08);
+  border: 1px solid rgba(180, 40, 40, 0.25);
+  color: #a82a2a;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  margin-bottom: 18px;
+}
+
+.auth-success {
+  background: rgba(60, 140, 60, 0.08);
+  border: 1px solid rgba(60, 140, 60, 0.25);
+  color: #2c7a2c;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  margin-bottom: 18px;
+}
+
+.auth-footnote {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 12.5px;
+  color: #8a7e03;
+}
+
+.auth-loading {
+  text-align: center;
+  color: #6b5344;
+  padding: 40px 0;
+}
+/* ── Scène animée d'arrivée ── */
+.auth-page-walk {
+  overflow: hidden;
+}
+
+.walk-scene {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.walk-card-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Carte tirée derrière le personnage */
+.walk-card {
+  transition: transform 1.8s cubic-bezier(0.25, 0.8, 0.3, 1);
+}
+
+.walk-card-wrapper.walking .walk-card {
+  transform: translateX(60vw);
+}
+
+.walk-card-wrapper.arrived .walk-card {
+  transform: translateX(0);
+}
+
+/* Personnage : commence loin à gauche, marche jusqu'à sa position, puis stoppe */
+.walk-character {
+  position: absolute;
+  bottom: -10px;
+  left: -260px;
+  width: 320px;
+  height: 100%;
+  z-index: 2;
+  transition: left 1.8s cubic-bezier(0.25, 0.8, 0.3, 1);
+}
+
+.character-walking {
+  left: -260px;
+  animation: bobWalk 0.5s ease-in-out infinite alternate;
+}
+
+.character-stopped {
+  left: -300px;
+  animation: none;
+  pointer-events: none; /* 🌟 Permet de cliquer À TRAVERS le personnage */
+  z-index: 1; /* Assure-toi qu'il passe en dessous de la bulle de texte */
+}
+
+.walk-message-text {
+  margin: 0 0 12px;
+}
+
+.walk-message-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.walk-btn-primary,
+.walk-btn-secondary {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.walk-btn-primary {
+  background: #8a7e03;
+  color: #fff;
+}
+
+.walk-btn-primary:hover {
+  background: #6b6203;
+  transform: translateY(-2px);
+}
+
+.walk-btn-secondary {
+  background: transparent;
+  color: #1d1b17;
+  border: 1.5px solid rgba(31, 27, 22, 0.2);
+}
+
+.walk-btn-secondary:hover {
+  background: rgba(31, 27, 22, 0.05);
+}
+
+/* Petit effet de transition entre les deux messages */
+.walk-message {
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease,
+    max-width 0.4s ease;
+}
+
+.walk-message.message-success {
+  max-width: 300px;
+}
+
+@keyframes bobWalk {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Bulle de message au-dessus du personnage, après arrivée */
+.walk-message {
+  position: absolute;
+  top: -90px;
+  left: -160px;
+  max-width: 280px;
+  background: #fff;
+  border: 1.5px solid rgba(138, 126, 3, 0.25);
+  border-radius: 16px 16px 16px 4px;
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1d1b17;
+  box-shadow: 0 16px 40px rgba(31, 27, 22, 0.12);
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.walk-message.show-message {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition-delay: 0.3s;
+  z-index: 50; /* Met la bulle au premier plan au-dessus de tout le reste */
+  pointer-events: auto; /* Force la réactivation des clics sur la bulle et ses enfants */
+}
+
+/* Petite pointe de la bulle de message */
+.walk-message::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 24px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #fff;
+}
+
+@media (max-width: 768px) {
+  .walk-character {
+    width: 150px;
+  }
+  .walk-message {
+    left: -100px;
+    max-width: 220px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-card {
+    padding: 32px 24px;
+  }
+  .auth-field-row {
+    grid-template-columns: 1fr;
+  }
+  .auth-actions {
+    flex-direction: column;
+  }
+}

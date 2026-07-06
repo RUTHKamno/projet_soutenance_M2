@@ -1,0 +1,79 @@
+.fab-wrapper {
+  position: fixed;
+  bottom: 36px;
+  right: 36px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.fab-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #8a7e03;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 28px rgba(138, 126, 3, 0.45);
+  transition: all 0.25s ease;
+  animation: fabPulse 3s ease-in-out infinite;
+}
+
+.fab-btn:hover {
+  background: #6b6203;
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 16px 40px rgba(138, 126, 3, 0.5);
+  animation: none;
+}
+
+@keyframes fabPulse {
+  0%,
+  100% {
+    box-shadow: 0 8px 28px rgba(138, 126, 3, 0.45);
+  }
+  50% {
+    box-shadow: 0 8px 40px rgba(138, 126, 3, 0.7);
+  }
+}
+
+.fab-tooltip {
+  background: #1d1b17;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+  pointer-events: none;
+}
+
+.fab-tooltip.tooltip-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fab-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 22px;
+  border: 6px solid transparent;
+  border-top-color: #1d1b17;
+}
+
+@media (max-width: 480px) {
+  .fab-wrapper {
+    bottom: 20px;
+    right: 20px;
+  }
+}

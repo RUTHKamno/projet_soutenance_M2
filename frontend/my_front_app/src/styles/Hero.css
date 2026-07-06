@@ -1,0 +1,331 @@
+/* ===========================
+   HERO
+=========================== */
+:root {
+  color-scheme: light;
+  --brand-gold: #8a7e03;
+  --brand-dark: #1f1b16;
+  --brand-muted: #5e5135;
+  --bg-surface: #fefbf2;
+  --bg-soft: #fbf6e6;
+}
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  min-height: 88vh;
+
+  background: #ffffff;
+
+  overflow: hidden;
+
+  position: relative;
+}
+
+/* ===========================
+   LEFT
+=========================== */
+
+.hero-left {
+  max-width: 520px;
+  padding: 80px 0 80px 60px;
+  opacity: 0;
+  transform: scale(0.85);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s ease;
+  z-index: 2;
+}
+
+.show-left {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hero-badge {
+  display: inline-block;
+
+  padding: 6px 16px;
+
+  margin-bottom: 24px;
+
+  border-radius: 20px;
+
+  background: #8a7e03;
+
+  border: 1px solid #423d04;
+
+  color: #fff;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+.hero-title {
+  font-size: 46px;
+
+  line-height: 1.2;
+
+  color: #000;
+
+  font-weight: 800;
+
+  margin-bottom: 20px;
+}
+
+.hero-accent {
+  color: #8a7e03;
+}
+
+.hero-subtitle {
+  color: #4f4b0afc;
+
+  font-size: 16px;
+
+  line-height: 1.8;
+
+  margin-bottom: 36px;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+
+.hero-buttons {
+  display: flex;
+
+  gap: 16px;
+}
+
+.btn-primary {
+  background: #8a7e03;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 8px;
+
+  padding: 14px 32px;
+
+  cursor: pointer;
+
+  font-size: 16px;
+
+  font-weight: 700;
+
+  box-shadow: 0 6px 20px rgba(139, 90, 43, 0.3);
+
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+
+  box-shadow: 0 12px 35px rgba(139, 90, 43, 0.5);
+}
+
+.btn-secondary {
+  background: transparent;
+
+  color: #8b5a2b;
+
+  border: 2px solid #8b5a2b;
+
+  border-radius: 8px;
+
+  padding: 14px 32px;
+
+  cursor: pointer;
+
+  font-size: 16px;
+
+  font-weight: 700;
+
+  transition: 0.3s;
+}
+
+.btn-secondary:hover {
+  background: rgba(139, 90, 43, 0.08);
+}
+
+/* ===========================
+   RIGHT
+=========================== */
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 88vh;
+  overflow: hidden;
+  background-color: #fbf6e6;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: 92px;
+}
+
+.hero-image {
+  width: 90%;
+  max-width: 740px;
+  height: auto;
+  min-height: 520px;
+  object-fit: contain;
+  object-position: right center;
+  display: block;
+  transform: translateX(6%);
+  transition: transform 0.45s ease;
+}
+
+/* Forme organique SVG inline */
+.hero-svg-mask {
+  position: absolute;
+  top: 0;
+  left: -1px;
+  height: 100%;
+  width: 160px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.wave-path {
+  animation: waveMove 4s ease-in-out infinite alternate;
+  transform-origin: center left;
+}
+
+.wave-path-2 {
+  animation: waveMove2 3.5s ease-in-out infinite alternate;
+  transform-origin: center left;
+}
+
+.hero-right {
+  flex: 1;
+
+  position: relative;
+
+  min-height: 88vh;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  opacity: 0;
+
+  transform: translateX(60px);
+
+  transition: all 1s ease 0.3s;
+}
+
+.hero-animation {
+  width: 100%;
+
+  height: 100%;
+
+  max-width: 650px;
+}
+
+.show-right {
+  opacity: 1;
+
+  transform: translateX(0);
+}
+
+.border-image {
+  position: absolute;
+
+  inset: 0;
+
+  width: 15;
+
+  height: 100%;
+
+  object-fit: cover;
+
+  pointer-events: none;
+
+  background-color: var(--bg-soft);
+}
+
+.hero-svg {
+  position: absolute;
+
+  top: 0;
+
+  left: 0;
+
+  width: 220px;
+
+  height: 100%;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width: 992px) {
+  .hero {
+    flex-direction: column;
+  }
+
+  .hero-left {
+    max-width: 100%;
+
+    padding: 60px 30px;
+  }
+
+  .hero-right {
+    width: 100%;
+
+    height: auto;
+
+    min-height: 420px;
+  }
+
+  .image-wrapper {
+    height: 100%;
+
+    min-height: 420px;
+    justify-content: center;
+    padding-right: 16px;
+  }
+
+  .hero-image {
+    width: 86%;
+    min-height: 360px;
+    transform: translateX(3%);
+  }
+
+  .hero-title {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .hero-title {
+    font-size: 30px;
+  }
+
+  .hero-subtitle {
+    font-size: 15px;
+  }
+
+  .image-wrapper {
+    min-height: 320px;
+  }
+
+  .border-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
