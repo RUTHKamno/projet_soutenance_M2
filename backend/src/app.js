@@ -6,6 +6,7 @@ import { llm } from "./config/gemini.js"; // Notre instance LangChain
 import agentRoutes from "./routes/agent.routes.js"; // 🆕 AJOUT : Importation de tes nouvelles routes
 import pdfRoutes from "./routes/pdf.export.routes.js"; // 🆕 AJOUT : Importation de tes routes de génération de PDF
 import authRoutes from "./routes/auth.routes.js";
+import commentaireRoutes from "./routes/commentaire.routes.js"; // Importation des routes commentaires
 
 dotenv.config();
 
@@ -33,6 +34,8 @@ app.get("/api/health", (req, res) => {
 app.use("/api/agent", agentRoutes);
 // 🆕 AJOUT : Branchement de tes routes de génération de pdf
 app.use("/api/pdf", pdfRoutes);
+// Branchement des routes commentaires
+app.use("/api/commentaires", commentaireRoutes);
 
 app.listen(PORT, async () => {
   console.log(`\n🚀 Serveur backend démarré sur http://localhost:${PORT}`);

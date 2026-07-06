@@ -23,7 +23,9 @@ export function resetTokenCache(): void {
 interface SupersetTokens {
   cookieJar: string;
 }
-
+export async function getSupersetHeaders(): Promise<Record<string, string>> {
+  return buildHeaders();
+}
 async function getTokens(): Promise<SupersetTokens> {
   if (cachedTokens) return cachedTokens;
 

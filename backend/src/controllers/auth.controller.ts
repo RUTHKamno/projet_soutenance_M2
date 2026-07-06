@@ -12,14 +12,25 @@ export const AuthController = {
     next: NextFunction,
   ) {
     try {
+      // À synchroniser avec dashboardsByRole dans auth.controller.ts
+
       const { dashboardId } = req.query; // ← lire depuis la query
       // 1. Récupérer l'utilisateur complet depuis la base de données grâce à l'ID du token de session
       const user = await AuthService.getUserById(req.user!.userId);
+      console.log(
+        "[GET SUPERSET TOKEN AUTH CONTROLLER] Utilisateur récupéré pour Superset:",
+        user,
+      );
 
       if (!user) {
         res.status(404).json({ error: "Utilisateur non trouvé." });
         return;
       }
+
+      console.log(
+        "[GET SUPERSET TOKEN AUTH CONTROLLER] Dashboard ID reçu:",
+        dashboardId,
+      );
 
       // 2. Générer le Guest Token Superset avec la logique RLS intégrée
       const supersetData = await AuthService.getSupersetGuestToken({

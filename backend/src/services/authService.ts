@@ -8,6 +8,7 @@ import {
   User,
 } from "../interfaces/auth.interface.js";
 import { pool } from "../db/pool.js";
+import { getSupersetHeaders } from "./supersetClient.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "SUPER_SECRET_CEPI_2026_KEY";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
@@ -42,6 +43,62 @@ function sanitizeUser(user: User) {
 
 // ─── Service ────────────────────────────────────────────────────────────────
 
+// Colonnes candidates représentant l'agence, par ordre de priorité de détection
+const AGENCE_COLUMN_CANDIDATES = [
+  "Agence",
+  "agence",
+  "age",
+  "agence_utilisateur",
+  "code_agence",
+];
+
+async function buildRlsClauses(
+  numericDashboardId: number,
+  agence: string,
+  headers: Record<string, string>,
+): Promise<{ clause: string; dataset: number }[]> {
+  const res = await axios.get(
+    `${SUPERSET_URL}/api/v1/dashboard/${numericDashboardId}/datasets`,
+    { headers },
+  );
+
+  const datasets = res.data.result ?? res.data;
+
+  console.log(
+    `[RLS DEBUG] ${datasets.length} datasets trouvés pour le dashboard ${numericDashboardId} :`,
+  );
+  datasets.forEach((ds: any) => {
+    const cols = (ds.columns ?? []).map((c: any) => c.column_name);
+    console.log(
+      `  - Dataset [${ds.id}] "${ds.table_name}" — colonnes: ${cols.join(", ")}`,
+    );
+  });
+  const rlsClauses: { clause: string; dataset: number }[] = [];
+
+  for (const ds of datasets) {
+    const columnNames: string[] = (ds.columns ?? []).map(
+      (c: any) => c.column_name,
+    );
+    const matchedColumn = AGENCE_COLUMN_CANDIDATES.find((c) =>
+      columnNames.includes(c),
+    );
+
+    if (matchedColumn) {
+      // Échappement basique contre l'injection SQL dans la clause RLS
+      const safeAgence = agence.replace(/'/g, "''");
+      rlsClauses.push({
+        clause: `"${matchedColumn}" = '${safeAgence}'`, // ← quoter le nom de colonne
+        dataset: ds.id, // ← scope la clause à CE dataset précis uniquement
+      });
+    }
+    // Si aucune colonne candidate n'existe (ex: table dim_temps sans notion d'agence),
+    // on ne pousse aucune clause → pas de risque, ce dataset n'a simplement pas
+    // de dimension agence à filtrer.
+  }
+
+  return rlsClauses;
+}
+
 export const AuthService = {
   // connexion au dashboard embed de superset
 
@@ -54,7 +111,63 @@ export const AuthService = {
     dashboardId: string;
   }) {
     try {
+      const DASHBOARD_UUID_TO_NUMERIC_ID: Record<string, number> = {
+        "84e98a10-319d-4073-9532-e46bc1bd6db2": 2, // Décaissements
+        "46b21232-cf43-4195-82be-81e77920742a": 1, // Crédit
+      };
       // 1. Authentification du backend auprès de l'API Superset pour obtenir un Access Token temporaire
+      // const loginResponse = await axios.post(
+      //   `${SUPERSET_URL}/api/v1/security/login`,
+      //   {
+      //     username: SUPERSET_ADMIN_USERNAME,
+      //     password: SUPERSET_ADMIN_PASSWORD,
+      //     provider: "db",
+      //   },
+      // );
+
+      // const accessToken = loginResponse.data.access_token;
+      // ── Auth via la session cookie déjà validée (plus de login Bearer ici) ──
+      const authHeaders = await getSupersetHeaders();
+
+      const targetDashboardId = user.dashboardId || DASHBOARD_ID;
+      const numericDashboardId =
+        DASHBOARD_UUID_TO_NUMERIC_ID[targetDashboardId];
+
+      let rlsClauses: { clause: string; dataset: number }[] = [];
+      // 2. Préparation des clauses RLS dynamiques en fonction du rôle de l'utilisateur
+
+      // Si c'est un directeur d'agence, on lui applique la restriction sur son agence
+      // ── Construction dynamique des clauses RLS, dataset par dataset ─────────
+      console.log("before adding rlsClauses");
+      if (user.role === "directeur_agence" && user.agence) {
+        if (!numericDashboardId) {
+          console.warn(
+            `[RLS] Aucun ID numérique connu pour l'UUID ${targetDashboardId} — RLS non appliquée !`,
+          );
+          // ⚠️ Décision de sécurité : voir remarque ci-dessous
+        } else {
+          console.log(
+            "[RLS] Construction des clauses RLS pour l'agence:",
+            user.agence,
+            "[supersetDashboard]",
+            numericDashboardId,
+          );
+          rlsClauses = await buildRlsClauses(
+            numericDashboardId,
+            user.agence,
+            authHeaders,
+          );
+          console.log(
+            "[RLS] Clauses générées :",
+            JSON.stringify(rlsClauses, null, 2),
+          );
+          if (rlsClauses.length === 0) {
+            console.warn(
+              "[RLS] ⚠️ AUCUNE clause générée — aucun dataset du dashboard n'a de colonne agence reconnue !",
+            );
+          }
+        }
+      }
       const loginResponse = await axios.post(
         `${SUPERSET_URL}/api/v1/security/login`,
         {
@@ -63,18 +176,21 @@ export const AuthService = {
           provider: "db",
         },
       );
+      const guestAccessToken = loginResponse.data.access_token;
 
-      const accessToken = loginResponse.data.access_token;
-
-      // 2. Préparation des clauses RLS dynamiques en fonction du rôle de l'utilisateur
-      const rlsClauses = [];
-
-      // Si c'est un directeur d'agence, on lui applique la restriction sur son agence
-      if (user.role === "directeur_agence" && user.agence) {
-        rlsClauses.push({
-          clause: `agence = '${user.agence}'`, // Adapte le nom de la colonne 'agence' selon ta table SQL
-        });
-      }
+      // const rlsClauses =
+      //   user.role === "directeur_agence" && user.agence
+      //     ? await buildRlsClauses(targetDashboardId, user.agence, authHeaders)
+      //     : [];
+      // console.log(
+      //   "[RLSCLAUSES GET SUPERSET GUEST TOKEN]rlsClauses applicated",
+      //   rlsClauses,
+      // );
+      // if (user.role === "directeur_agence" && user.agence) {
+      //   rlsClauses.push({
+      //     clause: `agence = '${user.agence}'`, // Adapte le nom de la colonne 'agence' selon ta table SQL
+      //   });
+      // }
       // Pour l'admin, direction_generale, etc., rlsClauses reste vide -> accès total.
 
       // 3. Demande du Guest Token à Superset
@@ -86,21 +202,39 @@ export const AuthService = {
             first_name: user.first_name,
             last_name: user.last_name,
           },
-          resources: [
-            {
-              type: "dashboard",
-              id: user.dashboardId || DASHBOARD_ID,
-            },
-          ],
+          resources: [{ type: "dashboard", id: targetDashboardId }],
           rls: rlsClauses,
         },
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${guestAccessToken}`,
             "Content-Type": "application/json",
           },
         },
       );
+      // const guestTokenResponse = await axios.post(
+      //   `${SUPERSET_URL}/api/v1/security/guest_token/`,
+      //   {
+      //     user: {
+      //       username: user.email,
+      //       first_name: user.first_name,
+      //       last_name: user.last_name,
+      //     },
+      //     resources: [
+      //       {
+      //         type: "dashboard",
+      //         id: user.dashboardId || DASHBOARD_ID,
+      //       },
+      //     ],
+      //     rls: rlsClauses,
+      //   },
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${accessToken}`,
+      //       "Content-Type": "application/json",
+      //     },
+      //   },
+      // );
 
       return {
         guestToken: guestTokenResponse.data.token,
