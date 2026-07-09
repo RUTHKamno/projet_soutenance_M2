@@ -4,15 +4,12 @@ const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 const defaultHeaders = (hasJson = true) => {
   const headers = {
-    "ngrok-skip-browser-warning": "true", // 👈 la clé du problème
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
+    "ngrok-skip-browser-warning": "true",
   };
-  const base = {};
-  if (hasJson) base["Content-Type"] = "application/json";
+  if (hasJson) headers["Content-Type"] = "application/json";
   const token = getToken();
-  if (token) base["Authorization"] = `Bearer ${token}`;
-  return base;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
 };
 
 const handleUnauthorized = () => {
