@@ -6,7 +6,10 @@ export const authApi = {
   async signIn(email, password) {
     const res = await fetch(`${API_BASE}/auth/signin`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
       body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
@@ -16,7 +19,10 @@ export const authApi = {
 
   async getMe() {
     const res = await fetch(`${API_BASE}/auth/me`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
+      headers: {
+        "ngrok-skip-browser-warning": "true",
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     const data = await res.json();
     if (!res.ok)
@@ -28,6 +34,7 @@ export const authApi = {
     const res = await fetch(`${API_BASE}/auth/me`, {
       method: "PUT",
       headers: {
+        "ngrok-skip-browser-warning": "true",
         "Content-Type": "application/json",
         Authorization: `Bearer ${getToken()}`,
       },
@@ -44,7 +51,10 @@ export const authApi = {
     const res = await fetch(
       `${API_BASE}/auth/superset-token?dashboardId=${dashboardId}`,
       {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          Authorization: `Bearer ${getToken()}`,
+        },
       },
     );
     const data = await res.json();
