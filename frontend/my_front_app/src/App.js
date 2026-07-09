@@ -1,12 +1,9 @@
-import logo from "./logo.svg";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import Layout from "./components/layout/Layout";
 import LoginPage from "./pages/LoginPage";
-import ChatPage from "./pages/ChatPage";
 import UpdateUserInfo from "./pages/UpdateUserInfo";
-import ChartRenderer from "./pages/ChartRenderer";
 import DashboardPage from "./pages/DashboardPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AProposPage from "./pages/AProposPage";
