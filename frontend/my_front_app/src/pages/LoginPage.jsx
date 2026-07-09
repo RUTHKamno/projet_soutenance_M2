@@ -11,6 +11,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
@@ -55,7 +56,7 @@ const LoginPage = () => {
       {/* Scène d'arrivée : personnage qui tire la carte */}
       <div className="walk-scene">
         <div
-          className={`walk-card-wrapper ${animationDone ? "arrived" : "walking"}`}
+          className={`walk-card-wrapper ${animationDone ? "arrived" : "walking"} ${loginSuccess ? "leaving" : ""}`}
         >
           {/* Bulle de message au-dessus, apparaît seulement après arrivée */}
           <div
@@ -140,16 +141,41 @@ const LoginPage = () => {
                 />
               </div>
 
-              <div className="auth-field">
+              <div className="auth-field auth-field-password">
                 <label htmlFor="password">Mot de passe</label>
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  className="auth-password-toggle"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
+                >
+                  {showPassword ? (
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 3l18 18" />
+                      <path d="M10.6 10.6a2 2 0 1 0 2.8 2.8" />
+                      <path d="M9.1 5.1A11.4 11.4 0 0 1 12 4.5c4.2 0 7.8 2.4 10 6.5a12.3 12.3 0 0 1-2.2 3.1" />
+                      <path d="M6.4 7.9A12.8 12.8 0 0 0 2 10.9c1.9 3.3 4.5 5.7 7.5 7.1" />
+                      <path d="M15.7 15.7a12.2 12.2 0 0 0 3.5-4.8" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" />
+                      <circle cx="12" cy="12" r="3.2" />
+                    </svg>
+                  )}
+                </button>
               </div>
 
               <button

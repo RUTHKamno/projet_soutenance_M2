@@ -102,7 +102,20 @@ export const useChat = () => {
       setLoading(true);
       setMessages((prev) => prev.filter((m) => !m.isReformulation));
 
+      // Déterminer exactement quelle reformulation stocker et envoyer :
+      // - si l'utilisateur a validé la reformulation (approved === true),
+      //   on conserve/envoie la reformulation proposée par le système (pendingReformulation)
+      // - si l'utilisateur a modifié la reformulation, on conserve/envoie sa version corrigée
+      let correctedToSend = correctedQuestion;
       if (pendingReformulation) {
+        const reformulationToStore = approved
+          ? pendingReformulation
+          : correctedQuestion || pendingReformulation;
+
+        correctedToSend = approved
+          ? pendingReformulation
+          : correctedQuestion || pendingReformulation;
+
         setMessages((prev) =>
           prev.map((m) => {
             if (m.role === "user" && !m.reformulatedQuestion) {
@@ -112,7 +125,7 @@ export const useChat = () => {
               );
               const lastUserMsg = userMsgs[userMsgs.length - 1];
               if (lastUserMsg && m.id === lastUserMsg.id) {
-                return { ...m, reformulatedQuestion: pendingReformulation };
+                return { ...m, reformulatedQuestion: reformulationToStore };
               }
             }
             return m;
@@ -124,7 +137,9 @@ export const useChat = () => {
         const result = await agentApi.resume(
           pendingThread,
           approved,
-          correctedQuestion,
+          // envoyer explicitement la bonne chaîne : soit la reformulation système
+          // soit la correction fournie par l'utilisateur
+          correctedToSend,
         );
 
         if (result.status === "blocked") {

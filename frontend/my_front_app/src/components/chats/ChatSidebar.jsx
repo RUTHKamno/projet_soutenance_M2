@@ -140,10 +140,15 @@ const ChatSidebar = ({ open, onClose }) => {
           ))}
 
           {loading && (
-            <div className="sidebar-typing">
-              <span />
-              <span />
-              <span />
+            <div className="sidebar-typing" role="status" aria-live="polite">
+              <div className="sidebar-typing-loader" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+              <p className="sidebar-typing-text">
+                L’assistant prépare la réponse…
+              </p>
             </div>
           )}
 

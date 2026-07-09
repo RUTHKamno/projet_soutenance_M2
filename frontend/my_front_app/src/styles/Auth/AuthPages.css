@@ -111,6 +111,46 @@
     box-shadow 0.2s ease;
 }
 
+.auth-field-password {
+  position: relative;
+}
+
+.auth-field-password input {
+  padding-right: 44px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #8a7e03;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.auth-password-toggle:hover {
+  color: #1d1b17;
+}
+
+.auth-password-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .auth-field input:focus,
 .auth-field select:focus {
   outline: none;
@@ -317,7 +357,65 @@
     transform: translateY(-8px);
   }
 }
+/* ── Retour du formulaire + agrandissement du message après connexion ── */
 
+/* Le formulaire repart d'où il vient, en sens inverse de l'arrivée */
+.walk-card-wrapper.arrived.leaving .walk-card {
+  transform: translateX(60vw);
+  opacity: 0;
+  transition:
+    transform 2.2s cubic-bezier(0.25, 0.8, 0.3, 1),
+    opacity 1.4s ease 0.8s;
+}
+
+/* Le personnage repart aussi, à pas lents, puis s'efface */
+.walk-card-wrapper.leaving .walk-character {
+  left: -600px;
+  animation: none;
+  opacity: 0;
+  transition:
+    left 2.2s cubic-bezier(0.25, 0.8, 0.3, 1),
+    opacity 1.4s ease 0.8s;
+}
+
+/* Le message prend la place du formulaire et devient plus grand */
+.walk-message.message-success {
+  top: 50%;
+  left: 50%;
+  max-width: 420px;
+  width: 100%;
+  padding: 32px 36px;
+  font-size: 16px;
+  line-height: 1.7;
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(31, 27, 22, 0.18);
+  transform: translate(-50%, calc(-50% + 12px)) scale(0.95);
+  transition:
+    opacity 0.6s ease,
+    transform 1.8s cubic-bezier(0.25, 0.8, 0.3, 1) 0.3s,
+    top 1.8s cubic-bezier(0.25, 0.8, 0.3, 1) 0.3s,
+    left 1.8s cubic-bezier(0.25, 0.8, 0.3, 1) 0.3s,
+    max-width 0.6s ease 0.3s,
+    padding 0.6s ease 0.3s,
+    font-size 0.6s ease 0.3s;
+}
+
+.walk-message.message-success.show-message {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Plus besoin de la petite pointe de bulle une fois centré */
+.walk-message.message-success::after {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .walk-message.message-success {
+    max-width: 300px;
+    padding: 24px 22px;
+    font-size: 14px;
+  }
+}
 /* Bulle de message au-dessus du personnage, après arrivée */
 .walk-message {
   position: absolute;

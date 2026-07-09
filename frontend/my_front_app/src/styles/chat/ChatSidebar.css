@@ -134,15 +134,22 @@
 /* Animation typing */
 .sidebar-typing {
   display: flex;
-  gap: 5px;
-  padding: 10px 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
   background: #fff;
   border-radius: 18px 18px 18px 4px;
   width: fit-content;
   border: 1px solid rgba(138, 126, 3, 0.15);
+  box-shadow: 0 8px 24px rgba(31, 27, 22, 0.06);
 }
 
-.sidebar-typing span {
+.sidebar-typing-loader {
+  display: flex;
+  gap: 5px;
+}
+
+.sidebar-typing-loader span {
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -150,11 +157,18 @@
   animation: typingDot 1.2s ease-in-out infinite;
 }
 
-.sidebar-typing span:nth-child(2) {
+.sidebar-typing-loader span:nth-child(2) {
   animation-delay: 0.2s;
 }
-.sidebar-typing span:nth-child(3) {
+.sidebar-typing-loader span:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+.sidebar-typing-text {
+  margin: 0;
+  font-size: 12.5px;
+  color: #6b5344;
+  font-weight: 600;
 }
 
 @keyframes typingDot {

@@ -4,6 +4,7 @@ import { exportMessageToPdf } from "../../utils/exportPdf";
 import "../../styles/chat/ChatBubble.css";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import * as XLSX from "xlsx";
 
 // Utilitaire pour convertir en toute sécurité les chaînes de type
 // "function(...) { ... }" en vraies fonctions JS, en parcourant
@@ -128,34 +129,90 @@ const exportTablesToCsv = (tables) => {
   );
 };
 
+// const escapeCsvCell = (cell) => {
+//   if (cell === null || cell === undefined) return '""';
+//   let stringValue = cell.toString();
+
+//   // 1. Si la cellule contient uniquement un long numéro (ex: numéro de téléphone à 9-15 chiffres)
+//   // On utilise la formule ="valeur" que seul Excel interprète pour forcer le format texte
+//   if (/^\d{9,15}$/.test(stringValue.trim())) {
+//     return `="${stringValue.trim()}"`;
+//   }
+
+//   // 2. Échappement standard des CSV (doubler les guillemets si présents)
+//   if (
+//     stringValue.includes('"') ||
+//     stringValue.includes(",") ||
+//     stringValue.includes("\n") ||
+//     stringValue.includes("\r")
+//   ) {
+//     stringValue = stringValue.replace(/"/g, '""');
+//     return `"${stringValue}"`;
+//   }
+
+//   return stringValue;
+// };
+
+// const exportTablesToCsv = (tables) => {
+//   const csv = tables
+//     .map((table, index) => {
+//       const rows = table
+//         // Étape 3 : Filtrer la ligne Markdown de séparation (ex: :---)
+//         .filter(
+//           (row) =>
+//             !row.every(
+//               (cell) =>
+//                 cell.trim().startsWith(":") || cell.trim().startsWith("-"),
+//             ),
+//         )
+//         .map((row) => row.map(escapeCsvCell).join(","));
+
+//       return [`Tableau ${index + 1}`, ...rows].join("\n");
+//     })
+//     .join("\n\n");
+
+//   // Étape 4 : Ajouter le BOM UTF-8 (\uFEFF) au début du fichier
+//   // Cela permet à Excel d'ouvrir directement le CSV avec les bons accents (é, è, à...)
+//   downloadBlob(
+//     `\uFEFF${csv}`,
+//     `tableau_export_${Date.now()}.csv`,
+//     "text/csv;charset=utf-8;",
+//   );
+// };
+
 const exportTablesToExcel = (tables) => {
-  const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"/><title>Export Excel</title></head><body>${tables
-    .map((table, index) => {
-      const rows = table
-        .map(
-          (row, rowIndex) =>
-            `<tr>${row
-              .map(
-                (cell) =>
-                  `<td style="padding:6px 10px;${
-                    rowIndex === 0
-                      ? "background:#f8fafc;font-weight:700;color:#334155;"
-                      : "background:#ffffff;"
-                  }">${cell.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</td>`,
-              )
-              .join("")}</tr>`,
-        )
-        .join("");
-      return `<h3 style="font-family:Helvetica,Arial,sans-serif;color:#1d1b17;margin-bottom:4px;">Tableau ${
-        index + 1
-      }</h3><table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#1d1b17;">${rows}</table>`;
-    })
-    .join("<br/>")} </body></html>`;
-  downloadBlob(
-    html,
-    `tableau_export_${Date.now()}.xls`,
-    "application/vnd.ms-excel;charset=utf-8;",
-  );
+  // 1. Créer un nouveau classeur (Workbook)
+  const wb = XLSX.utils.book_new();
+
+  tables.forEach((table, index) => {
+    // 2. Filtrer la ligne de séparation Markdown (:---) si elle existe
+    const cleanedTable = table.filter(
+      (row) =>
+        !row.every(
+          (cell) => cell.trim().startsWith(":") || cell.trim().startsWith("-"),
+        ),
+    );
+
+    // 3. Convertir le tableau en feuille (Worksheet)
+    const ws = XLSX.utils.aoa_to_sheet(cleanedTable);
+
+    // 4. Forcer le format TEXTE sur toutes les cellules pour éviter la notation scientifique
+    Object.keys(ws).forEach((cellRef) => {
+      if (cellRef.startsWith("!") || !ws[cellRef].v) return;
+
+      // Si la valeur ressemble à un numéro de téléphone (uniquement des chiffres, long)
+      if (/^\d{9,15}$/.test(ws[cellRef].v.toString().trim())) {
+        ws[cellRef].t = "s"; // 's' signifie String (Texte) dans SheetJS
+        ws[cellRef].z = "@"; // Force le format texte dans Excel
+      }
+    });
+
+    // 5. Ajouter la feuille au classeur
+    XLSX.utils.book_append_sheet(wb, ws, `Tableau ${index + 1}`);
+  });
+
+  // 6. Générer et télécharger le vrai fichier .xlsx
+  XLSX.writeFile(wb, `tableau_export_${Date.now()}.xlsx`);
 };
 
 const ChatBubble = ({
