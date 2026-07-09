@@ -150,7 +150,7 @@ export const useChat = () => {
         setPendingReformulation(null);
       }
     },
-    [pendingThread],
+    [pendingThread, pendingReformulation],
   );
 
   const cancelReformulation = useCallback(() => {
@@ -201,7 +201,7 @@ export const useChat = () => {
 
       try {
         // On envoie uniquement ce que ton contrôleur backend attend !
-        const response = await agentApi.publishChart({
+        await agentApi.publishChart({
           thread_id: activeThreadId,
           dashboardId: dashboardId,
           chartTitle: `Graphique - ${targetMessage.chartConfig?.title || "Agent IA"}`,

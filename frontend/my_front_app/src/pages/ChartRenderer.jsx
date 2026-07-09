@@ -21,6 +21,7 @@ const ChartRenderer = ({ dashboardId }) => {
     setLoading(true);
     setError(null);
 
+    const container = containerRef.current;
     let cancelled = false;
 
     const loadDashboard = async () => {
@@ -54,8 +55,8 @@ const ChartRenderer = ({ dashboardId }) => {
 
     return () => {
       cancelled = true;
-      if (containerRef.current) {
-        containerRef.current.innerHTML = "";
+      if (container) {
+        container.innerHTML = "";
       }
     };
   }, [dashboardId]); // ← dashboardId comme dépendance

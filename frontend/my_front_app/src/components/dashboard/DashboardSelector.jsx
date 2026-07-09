@@ -20,7 +20,7 @@ const DashboardSelector = ({ selected, onSelect }) => {
         setError(err.message || "Impossible de charger les tableaux de bord.");
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [onSelect, selected]);
 
   if (loading) return null;
 

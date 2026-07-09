@@ -4,7 +4,6 @@ import "../styles/Dashboard/DashboardPage.css";
 import ChartRenderer from "./ChartRenderer";
 import ChatFAB from "../components/chats/ChatFAB";
 import ChatSidebar from "../components/chats/ChatSidebar";
-import { getToken } from "../utils/tokenUtils";
 import { agentApi } from "../api/agentApi";
 import { authApi } from "../api/authApi";
 
