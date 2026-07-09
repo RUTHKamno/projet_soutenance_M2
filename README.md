@@ -1,4 +1,5 @@
-# RuthyStore BI 🚀
+# RuthyStore BI 🚀 
+Lien de l'application frontend déployé sur Vercel App: https://projet-soutenance-m2-lcj68t4mc-ruthy-store.vercel.app/dashboard
 ## Plateforme de Business Intelligence & Agent IA pour la Microfinance
 
 **RuthyStore BI** est une plateforme de Business Intelligence (BI) de bout en bout conçue pour l'institutions de microfinance X. Développée dans le cadre d'un projet de fin de cycle (Master 2 en Intelligence Artificielle et Big Data à Keyce Informatique et IA, Yaoundé), cette solution combine un **Data Warehouse robuste**, des **tableaux de bord analytiques** et un **système d'agents IA conversationnels** pour démocratiser l'accès aux indicateurs décisionnels.
