@@ -1,0 +1,37 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Dépendances
+node_modules/
+jspm_packages/
+
+# Builds (React / Express)
+build/
+dist/
+*.tsbuildinfo
+
+# Variables d'environnement & Clés Secrètes (CRITIQUE)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+secrets.json
+*.pem
+*.key
+
+# Données locales, caches et DBs (Redis, LanceDB, Superset configs)
+.lancedb/
+data/
+*.db
+*.sqlite
+dump.rdb
+
+# Éditeurs
+.vscode/
+.idea/
+.DS_Store
