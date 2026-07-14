@@ -94,7 +94,11 @@ const DashboardPage = () => {
         )}
       </div>
       <ChatFAB onClick={() => setChatOpen(true)} />
-      <ChatSidebar open={chatOpen} onClose={() => setChatOpen(false)} />
+      <ChatSidebar
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        userRole={userRole}
+      />
     </div>
   );
 };

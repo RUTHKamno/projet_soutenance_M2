@@ -87,6 +87,73 @@ export const useChat = () => {
     }
   }, []);
 
+  const sendQuestionDirect = useCallback(async (question) => {
+    setLastQuestion(question);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now() + Math.random(),
+        role: "user",
+        content: question,
+        retryable: true,
+      },
+    ]);
+
+    setLoading(true);
+
+    try {
+      const result = await agentApi.ask(question);
+      console.log("Résultat de la question rapide:", result);
+
+      if (result.status === "awaiting_validation") {
+        // Bypass user validation: on passe la question directe comme correction.
+        try {
+          const resumeResult = await agentApi.resume(
+            result.thread_id,
+            false,
+            question,
+          );
+
+          if (resumeResult.status === "blocked") {
+            addMessage(
+              "assistant",
+              resumeResult.summary || translateChatError("blocked"),
+            );
+          } else {
+            addMessage("assistant", resumeResult.summary || "", {
+              chartConfig: resumeResult.chartConfig || null,
+              report: resumeResult.report || null,
+              audit: resumeResult.audit || null,
+              exportable: true,
+            });
+          }
+        } catch (innerErr) {
+          addMessage("error", translateChatError(innerErr.message), {
+            retryable: true,
+          });
+        }
+      } else {
+        addMessage(
+          "assistant",
+          result.summary ||
+            "Je suis votre Assistant IA Analytics, Que puis-je pour vous?",
+          {
+            chartConfig: result.chartConfig || null,
+            report: result.report || null,
+            audit: result.audit || null,
+            exportable: true,
+          },
+        );
+      }
+    } catch (err) {
+      addMessage("error", translateChatError(err.message), {
+        retryable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const retryLastQuestion = useCallback(() => {
     if (!lastQuestion) return;
     // Supprimer le dernier message d'erreur
@@ -261,6 +328,7 @@ export const useChat = () => {
     lastQuestion,
     loadHistory,
     sendQuestion,
+    sendQuestionDirect,
     sendValidation,
     retryLastQuestion,
     cancelReformulation,

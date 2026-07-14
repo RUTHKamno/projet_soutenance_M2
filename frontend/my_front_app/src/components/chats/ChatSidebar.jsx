@@ -1,16 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useChat } from "../../hooks/useChat";
 import ChatBubble from "./ChatBubble";
+import { getChatQuickActions } from "../../data/chatSections";
 import "../../styles/chat/ChatSidebar.css";
 import { exportChatToPdf } from "../../utils/exportPdf";
 
-const ChatSidebar = ({ open, onClose }) => {
+const ChatSidebar = ({ open, onClose, userRole }) => {
   const {
     messages,
     loading,
     pendingReformulation,
     loadHistory,
     sendQuestion,
+    sendQuestionDirect,
     sendValidation,
     retryLastQuestion,
     cancelReformulation,
@@ -20,6 +22,13 @@ const ChatSidebar = ({ open, onClose }) => {
   const [input, setInput] = useState("");
   const [correcting, setCorrecting] = useState(false);
   const [correctedText, setCorrectedText] = useState("");
+
+  const quickActions = getChatQuickActions(userRole);
+
+  const handleQuickAction = async (question) => {
+    if (!question || loading || pendingReformulation) return;
+    await sendQuestionDirect(question);
+  };
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const historyLoaded = useRef(false);
@@ -114,6 +123,22 @@ const ChatSidebar = ({ open, onClose }) => {
             <button className="sidebar-close" onClick={onClose}>
               ✕
             </button>
+          </div>
+        </div>
+
+        <div className="sidebar-quick-actions">
+          <span className="sidebar-quick-label">Actions rapides :</span>
+          <div className="sidebar-quick-buttons">
+            {quickActions.map((action) => (
+              <button
+                key={action.label}
+                className="sidebar-quick-btn"
+                onClick={() => handleQuickAction(action.question)}
+                disabled={loading || !!pendingReformulation}
+              >
+                {action.label}
+              </button>
+            ))}
           </div>
         </div>
 
