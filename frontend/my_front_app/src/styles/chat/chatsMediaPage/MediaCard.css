@@ -1,0 +1,112 @@
+/* MediaCard.css */
+.media-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #d7c98a;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 14px rgba(138, 126, 3, 0.08);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.media-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(138, 126, 3, 0.18);
+}
+
+/* Bouton supprimer : ancré en haut à droite, au-dessus de tout */
+.media-card-delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #b33;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  opacity: 0.75;
+  transition: 0.2s;
+}
+.media-card-delete:hover {
+  opacity: 1;
+  background: #ffecec;
+}
+
+.media-card-preview {
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fbf9f2;
+  border: 1px solid #eee2b8;
+}
+.media-card-error {
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* Effet "page de rapport" avec coin plié */
+.media-card-report-preview {
+  position: relative;
+  height: 170px;
+  padding: 16px;
+  background: #fffdf6;
+  overflow: hidden;
+}
+.media-card-report-preview p {
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.5;
+}
+.media-card-report-fold {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 22px 22px 0;
+  border-color: transparent #d7c98a transparent transparent;
+}
+
+.media-card-title {
+  font-weight: 600;
+  color: #423d02;
+}
+.media-card-date {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.media-card-footer {
+  display: flex;
+  gap: 8px;
+}
+.media-card-expand,
+.media-card-observe {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #8a7e03;
+  color: #8a7e03;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.media-card-expand:hover,
+.media-card-observe:hover {
+  background: #8a7e03;
+  color: #fff;
+}

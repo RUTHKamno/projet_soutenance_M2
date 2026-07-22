@@ -155,7 +155,8 @@ export async function generateDashboardPDF(
     const firstMeta = await getSupersetChartSQL(charts[0].chartId);
     const tableMatches = firstMeta.sql.match(/dwh\.\w+/gi) ?? [];
     const uniqueTables = [...new Set(tableMatches)];
-    if (uniqueTables.length > 0) sourceTables = uniqueTables.join(", ");
+    if (uniqueTables.length > 0)
+      sourceTables = uniqueTables.slice(0, 2).join(", ");
   } catch {}
 
   // ── Initialisation du document ────────────────────────────────────────────

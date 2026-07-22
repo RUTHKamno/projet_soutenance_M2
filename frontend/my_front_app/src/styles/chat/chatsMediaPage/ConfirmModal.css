@@ -1,0 +1,56 @@
+/* ConfirmModal.css */
+.cmodal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+.cmodal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.cmodal-title {
+  font-weight: 600;
+  color: #423d02;
+  margin-bottom: 8px;
+}
+.cmodal-message {
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+.cmodal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.cmodal-cancel {
+  background: transparent;
+  border: 1px solid #ccc;
+  color: #555;
+  border-radius: 8px;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+.cmodal-confirm {
+  background: #b33;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+.cmodal-cancel:hover {
+  background: #f2f2f2;
+}
+.cmodal-confirm:hover {
+  background: #922;
+}

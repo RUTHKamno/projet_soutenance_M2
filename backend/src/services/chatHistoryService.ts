@@ -83,3 +83,45 @@ export async function getThreadContext(threadId: string, limit = 6) {
     }))
     .reverse();
 }
+
+export async function getUserMedia(userId: number) {
+  const result = await pool.query(
+    `SELECT m.id, m.thread_id, m.timestamp, m.report, m.chart_config,
+            (SELECT content FROM chat_messages u
+             WHERE u.thread_id = m.thread_id AND u.role = 'user'
+             ORDER BY u.timestamp ASC LIMIT 1) AS question
+     FROM chat_messages m
+     WHERE m.user_id = $1
+       AND m.is_visible = true
+       AND (m.report IS NOT NULL OR m.chart_config IS NOT NULL)
+     ORDER BY m.timestamp DESC`,
+    [userId],
+  );
+
+  return result.rows.map((row: any) => ({
+    id: row.id,
+    threadId: row.thread_id,
+    question: row.question,
+    timestamp: row.timestamp,
+    report: row.report,
+    chartConfig: row.chart_config
+      ? typeof row.chart_config === "string"
+        ? JSON.parse(row.chart_config)
+        : row.chart_config
+      : null,
+  }));
+}
+
+export async function hideMessage(
+  messageId: number,
+  userId: number,
+): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE chat_messages
+     SET is_visible = false
+     WHERE id = $1 AND user_id = $2
+     RETURNING id`,
+    [messageId, userId],
+  );
+  return (result.rowCount ?? 0) > 0;
+}

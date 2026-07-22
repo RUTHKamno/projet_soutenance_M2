@@ -1,25 +1,29 @@
 // src/cache/sqlCache.ts
 import { createHash } from "crypto";
 import { Redis } from "ioredis";
-import { searchSimilar } from "../agentic/ragService.js";
+// import { searchSimilar } from "../agentic/ragService.js";
+import {
+  indexCachedQuestion,
+  searchCachedQuestions,
+} from "./questionCacheStore.js";
 
 // ─── Interface ───────────────────────────────────────────────────────────────
 interface CacheEntry {
-  sql:           string;
+  sql: string;
   visualisation: string;
-  question:      string;
-  roleHash:      string;
-  hitCount:      number;
-  createdAt:     string;
-  validatedAt:   string;
+  question: string;
+  roleHash: string;
+  hitCount: number;
+  createdAt: string;
+  validatedAt: string;
   data_generated?: any;
 }
 
 // 1. On définit la structure d'un bloc de résultat individuel
 export interface SQLQueryResult {
   userQuestion: string;
-  role:         string;
-  agence?:      string;
+  role: string;
+  agence?: string;
   sql: string;
   visualisation: string;
   data: any; // Les lignes retournées par CETTE requête spécifique
@@ -30,17 +34,26 @@ export interface SQLQueryResult {
 const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 // ─── Connexion Redis ─────────────────────────────────────────────────────────
-const redisClient = new Redis(process.env.REDIS_URL || "redis://127.0.0.1:6379", {
-  maxRetriesPerRequest: 3,
-  lazyConnect: true,   // ne se connecte que lors du premier appel
-});
+const redisClient = new Redis(
+  process.env.REDIS_URL || "redis://127.0.0.1:6379",
+  {
+    maxRetriesPerRequest: 3,
+    lazyConnect: true, // ne se connecte que lors du premier appel
+  },
+);
 
-redisClient.on("connect", () => console.log("⚙️  [Redis] Connecté avec succès."));
+redisClient.on("connect", () =>
+  console.log("⚙️  [Redis] Connecté avec succès."),
+);
 redisClient.on("error", (err: Error) => {
   console.error("❌ [Redis] Erreur :", err.message);
 });
 // ─── Clé Redis ───────────────────────────────────────────────────────────────
-function buildCacheKey(question: string, role: string, agence?: string): string {
+function buildCacheKey(
+  question: string,
+  role: string,
+  agence?: string,
+): string {
   const normalized = question
     .toLowerCase()
     .trim()
@@ -48,7 +61,7 @@ function buildCacheKey(question: string, role: string, agence?: string): string 
     .replace(/\s+/g, " ");
 
   const rbacKey = `${role}:${agence ?? "all"}`;
-  const hash    = createHash("sha256")
+  const hash = createHash("sha256")
     .update(`${normalized}||${rbacKey}`)
     .digest("hex")
     .substring(0, 16);
@@ -59,8 +72,8 @@ function buildCacheKey(question: string, role: string, agence?: string): string 
 // ─── NIVEAU 1 : Cache exact ───────────────────────────────────────────────────
 export async function getCacheExact(
   question: string,
-  role:     string,
-  agence?:  string
+  role: string,
+  agence?: string,
 ): Promise<CacheEntry | null> {
   agence ??= undefined;
   const key = buildCacheKey(question, role, agence);
@@ -78,62 +91,134 @@ export async function getCacheExact(
     // Réécrit l'entrée ET réinitialise le TTL à chaque hit
     await redisClient.set(key, JSON.stringify(entry), "EX", CACHE_TTL_SECONDS);
 
-    console.log(`[Cache] ✅cache trouvée (key: ${key}, hits: ${entry.hitCount})`);
+    console.log(
+      `[Cache] ✅cache trouvée (key: ${key}, hits: ${entry.hitCount})`,
+    );
     return entry;
-
   } catch (err) {
     console.error("[Cache] ❌ Erreur getCacheExact :", err);
-    return null;  // fail silencieux → pipeline continue normalement
+    return null; // fail silencieux → pipeline continue normalement
   }
 }
 
 // ─── NIVEAU 2 : Cache sémantique ─────────────────────────────────────────────
+// export async function getCacheSemantic(
+//   question:  string,
+//   role:      string,
+//   agence?:   string,
+//   threshold = 0.15   // ⚠️ Distance L2 : PLUS PETIT = plus similaire (inverse de cosinus)
+//                      // 0.15 correspond à ~92% de similarité en espace L2 normalisé
+// ): Promise<CacheEntry | null> {
+
+//   try {
+//     const results = await searchSimilar(question, 1);
+//     if (!results || results.length === 0) return null;
+
+//     const topResult = results[0];
+
+//     // ⚠️ Correction : LanceDB retourne distance L2 (pas cosinus)
+//     // Distance L2 : 0 = identique, plus grand = plus différent
+//     // On vérifie que la distance EST INFÉRIEURE au seuil
+//     if (topResult._distance > threshold) {
+//       console.log(`[Cache] ❌ MISS sémantique (distance L2: ${topResult._distance.toFixed(4)} > seuil: ${threshold})`);
+//       return null;
+//     }
+
+//     const similarKey = buildCacheKey(topResult.question, role, agence);
+//     const raw        = await redisClient.get(similarKey);
+
+//     if (!raw) {
+//       console.log(`[Cache] ❌ Question similaire trouvée mais pas en cache Redis.`);
+//       return null;
+//     }
+
+//     const cached = JSON.parse(raw) as CacheEntry;
+//     cached.hitCount++;
+//     await redisClient.set(similarKey, JSON.stringify(cached), "EX", CACHE_TTL_SECONDS);
+
+//     console.log(`[Cache] ✅ HIT sémantique (distance L2: ${topResult._distance.toFixed(4)}, hits: ${cached.hitCount})`);
+//     return cached;
+
+//   } catch (err) {
+//     console.warn("[Cache] ⚠️ Recherche sémantique échouée, passage au LLM :", err);
+//     return null;
+//   }
+// }
+// sqlCache.ts — remplace entièrement getCacheSemantic
 export async function getCacheSemantic(
-  question:  string,
-  role:      string,
-  agence?:   string,
-  threshold = 0.15   // ⚠️ Distance L2 : PLUS PETIT = plus similaire (inverse de cosinus)
-                     // 0.15 correspond à ~92% de similarité en espace L2 normalisé
+  question: string,
+  role: string,
+  agence?: string,
+  threshold = 0.15, // Distance L2 : plus petit = plus similaire
 ): Promise<CacheEntry | null> {
-
   try {
-    const results = await searchSimilar(question, 1);
-    if (!results || results.length === 0) return null;
+    const match = await searchCachedQuestions(question, role, agence, 1);
+    if (!match) return null;
 
-    const topResult = results[0];
-
-    // ⚠️ Correction : LanceDB retourne distance L2 (pas cosinus)
-    // Distance L2 : 0 = identique, plus grand = plus différent
-    // On vérifie que la distance EST INFÉRIEURE au seuil
-    if (topResult._distance > threshold) {
-      console.log(`[Cache] ❌ MISS sémantique (distance L2: ${topResult._distance.toFixed(4)} > seuil: ${threshold})`);
+    if (match.distance > threshold) {
+      console.log(
+        `[Cache] ❌ MISS sémantique (distance L2: ${match.distance.toFixed(4)} > seuil: ${threshold})`,
+      );
       return null;
     }
 
-    const similarKey = buildCacheKey(topResult.question, role, agence);
-    const raw        = await redisClient.get(similarKey);
-
+    const raw = await redisClient.get(match.redisKey);
     if (!raw) {
-      console.log(`[Cache] ❌ Question similaire trouvée mais pas en cache Redis.`);
+      console.log(
+        `[Cache] ❌ Question similaire trouvée ("${match.question}") mais entrée Redis expirée/absente.`,
+      );
       return null;
     }
 
     const cached = JSON.parse(raw) as CacheEntry;
     cached.hitCount++;
-    await redisClient.set(similarKey, JSON.stringify(cached), "EX", CACHE_TTL_SECONDS);
+    await redisClient.set(
+      match.redisKey,
+      JSON.stringify(cached),
+      "EX",
+      CACHE_TTL_SECONDS,
+    );
 
-    console.log(`[Cache] ✅ HIT sémantique (distance L2: ${topResult._distance.toFixed(4)}, hits: ${cached.hitCount})`);
+    console.log(
+      `[Cache] ✅ HIT sémantique (question proche: "${match.question}", distance L2: ${match.distance.toFixed(4)}, hits: ${cached.hitCount})`,
+    );
     return cached;
-
   } catch (err) {
-    console.warn("[Cache] ⚠️ Recherche sémantique échouée, passage au LLM :", err);
+    console.warn(
+      "[Cache] ⚠️ Recherche sémantique échouée, passage au LLM :",
+      err,
+    );
     return null;
   }
 }
 
 // ─── STOCKAGE après validation Judge ─────────────────────────────────────────
+// export async function setCacheEntry(data: SQLQueryResult): Promise<void> {
+//   const key     = buildCacheKey(data?.userQuestion, data?.role, data?.agence);
+//   const rbacKey = `${data?.role}:${data?.agence ?? "all"}`;
+
+//   const entry: CacheEntry = {
+//     sql: data.sql,
+//     visualisation: data.visualisation,
+//     question: data.userQuestion,
+//     data_generated: data.data,
+//     roleHash:    rbacKey,
+//     hitCount:    0,
+//     createdAt:   new Date().toISOString(),
+//     validatedAt: new Date().toISOString(),
+//   };
+
+//   try {
+//     await redisClient.set(key, JSON.stringify(entry), "EX", CACHE_TTL_SECONDS);
+//     console.log(`[Cache] 💾 Stocké dans Redis (key: ${key}, TTL: 7j, role: ${rbacKey})`);
+//   } catch (err) {
+//     console.error("[Cache] ❌ Erreur setCacheEntry :", err);
+//     // fail silencieux → le pipeline continue sans cache
+//   }
+// }
+// sqlCache.ts — complète setCacheEntry (ajout de l'indexation, reste inchangé)
 export async function setCacheEntry(data: SQLQueryResult): Promise<void> {
-  const key     = buildCacheKey(data?.userQuestion, data?.role, data?.agence);
+  const key = buildCacheKey(data?.userQuestion, data?.role, data?.agence);
   const rbacKey = `${data?.role}:${data?.agence ?? "all"}`;
 
   const entry: CacheEntry = {
@@ -141,30 +226,39 @@ export async function setCacheEntry(data: SQLQueryResult): Promise<void> {
     visualisation: data.visualisation,
     question: data.userQuestion,
     data_generated: data.data,
-    roleHash:    rbacKey,
-    hitCount:    0,
-    createdAt:   new Date().toISOString(),
+    roleHash: rbacKey,
+    hitCount: 0,
+    createdAt: new Date().toISOString(),
     validatedAt: new Date().toISOString(),
   };
 
   try {
     await redisClient.set(key, JSON.stringify(entry), "EX", CACHE_TTL_SECONDS);
-    console.log(`[Cache] 💾 Stocké dans Redis (key: ${key}, TTL: 7j, role: ${rbacKey})`);
+    console.log(
+      `[Cache] 💾 Stocké dans Redis (key: ${key}, TTL: 7j, role: ${rbacKey})`,
+    );
+
+    // ── Indexation pour le cache sémantique (recherche future par paraphrase) ──
+    await indexCachedQuestion({
+      question: data.userQuestion,
+      role: data.role,
+      agence: data.agence,
+      redisKey: key,
+    });
   } catch (err) {
     console.error("[Cache] ❌ Erreur setCacheEntry :", err);
-    // fail silencieux → le pipeline continue sans cache
   }
 }
 
 // ─── STATS pour monitoring ────────────────────────────────────────────────────
 export async function getCacheStats(): Promise<{
-  totalKeys:  number;
+  totalKeys: number;
   sampleKeys: string[];
 }> {
   try {
     const keys = await redisClient.keys("cache:sql:*");
     return {
-      totalKeys:  keys.length,
+      totalKeys: keys.length,
       sampleKeys: keys.slice(0, 5),
     };
   } catch (err) {
@@ -190,7 +284,9 @@ export async function invalidateCache(role?: string): Promise<number> {
         }
       }
       if (toDelete.length > 0) await redisClient.del(...toDelete);
-      console.log(`[Cache] 🗑️  ${toDelete.length} entrées supprimées pour le rôle "${role}"`);
+      console.log(
+        `[Cache] 🗑️  ${toDelete.length} entrées supprimées pour le rôle "${role}"`,
+      );
       return toDelete.length;
     }
 
@@ -198,7 +294,6 @@ export async function invalidateCache(role?: string): Promise<number> {
     await redisClient.del(...keys);
     console.log(`[Cache] 🗑️  Cache entièrement vidé (${keys.length} entrées)`);
     return keys.length;
-
   } catch (err) {
     console.error("[Cache] ❌ Erreur invalidateCache :", err);
     return 0;

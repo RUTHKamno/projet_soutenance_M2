@@ -1,0 +1,249 @@
+/* ChatMediaPage.css */
+.media-page {
+  padding: 0px 60px;
+  min-height: 80vh;
+}
+.media-page-header h1 {
+  color: #423d02;
+  font-size: 1.8rem;
+}
+.media-page-header p {
+  color: #6b6b6b;
+  margin-bottom: 30px;
+}
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+.media-empty {
+  text-align: center;
+  color: #8a7e03;
+  padding: 60px 0;
+}
+/* Barre de filtres */
+.media-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  background-color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.filter-group label {
+  font-weight: 500;
+}
+
+.filter-group select,
+.filter-group input[type="date"] {
+  padding: 6px 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  outline: none;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.filter-group select:focus,
+.filter-group input[type="date"]:focus {
+  border-color: #409eff;
+}
+
+.reset-filters-btn {
+  background: none;
+  border: none;
+  color: #f56c6c;
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: underline;
+  padding: 4px 8px;
+}
+
+.reset-filters-btn:hover {
+  color: #d9363e;
+}
+
+/* BARRE DE FILTRES STYLE GLASSMORPHISM CORPORATE */
+.media-filters-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 12px 24px;
+  margin-bottom: 30px;
+
+  /* Glassmorphism effet & Élévation */
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(220, 210, 185, 0.5);
+  border-radius: 12px;
+  box-shadow:
+    0 10px 25px -5px rgba(85, 75, 45, 0.08),
+    0 4px 6px -2px rgba(0, 0, 0, 0.03);
+
+  transition: all 0.3s ease;
+}
+
+.media-filters-container:hover {
+  box-shadow: 0 14px 30px -5px rgba(85, 75, 45, 0.12);
+  border-color: rgba(200, 180, 140, 0.8);
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-item label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #4a4538;
+  letter-spacing: 0.2px;
+}
+
+/* Customisation des SELECT et INPUT DATE */
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-item select,
+.filter-item input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid #e2dacd;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: #332f27;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Fleche personnalisée pour le select */
+.select-wrapper::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #8c826b;
+  font-size: 0.8rem;
+}
+
+.filter-item select {
+  padding-right: 32px;
+}
+
+.filter-item select:hover,
+.filter-item input[type="date"]:hover {
+  border-color: #9a8b66;
+  background-color: #ffffff;
+}
+
+.filter-item select:focus,
+.filter-item input[type="date"]:focus {
+  border-color: #83744a;
+  box-shadow: 0 0 0 3px rgba(131, 116, 74, 0.15);
+  background-color: #ffffff;
+}
+
+/* BOUTON REINITIALISER ELEGANT & CORPORATE */
+.reset-filters-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto; /* Pousse le bouton à droite si possible */
+  padding: 8px 14px;
+  background-color: rgba(235, 225, 210, 0.4);
+  border: 1px solid #dcd1be;
+  border-radius: 8px;
+  color: #61563f;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-filters-btn:hover {
+  background-color: #83744a;
+  border-color: #83744a;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(131, 116, 74, 0.2);
+}
+
+.reset-filters-btn:active {
+  transform: translateY(0);
+}
+
+.reset-filters-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.reset-filters-btn:hover svg {
+  transform: rotate(-90deg);
+}
+
+/* SÉPARATEUR SUBTIL */
+.filter-divider {
+  width: 1px;
+  height: 24px;
+  background-color: rgba(220, 210, 185, 0.7);
+  margin: 0 4px;
+}
+
+/* GROUPE DES BOUTONS RACCOURCIS */
+.preset-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.preset-btn {
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid #e2dacd;
+  border-radius: 20px; /* Style Pilule */
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #58503d;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.preset-btn:hover {
+  background-color: #ffffff;
+  border-color: #a3936d;
+  color: #332f27;
+  transform: translateY(-1px);
+}
+
+.preset-btn.active {
+  background-color: #83744a;
+  border-color: #83744a;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 3px 8px rgba(131, 116, 74, 0.25);
+}

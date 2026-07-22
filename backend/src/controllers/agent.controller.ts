@@ -11,6 +11,8 @@ import { extractAuditMetrics } from "../services/langsmithAudit.js";
 import { extractAgentOutput } from "../services/agentServices.js";
 import {
   getThreadContext,
+  getUserMedia,
+  hideMessage,
   saveMessage,
 } from "../services/chatHistoryService.js";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
@@ -256,85 +258,85 @@ export const handleAgentResume = async (
     }
 
     // ── Publication automatique dans Superset ──────────────────────────────
-    console.log(
-      "[Superset Auto-Publish] 🔄 Vérification de la possibilité de publication...",
-    );
-    let supersetPublish: {
-      success: boolean;
-      message: string;
-      chartId?: number;
-    } | null = null;
+    // console.log(
+    //   "[Superset Auto-Publish] 🔄 Vérification de la possibilité de publication...",
+    // );
+    // let supersetPublish: {
+    //   success: boolean;
+    //   message: string;
+    //   chartId?: number;
+    // } | null = null;
 
-    if (
-      !result.isBlocked &&
-      output.chartConfig &&
-      output.queryResult &&
-      output.queryResult.rows &&
-      output.queryResult.rows.length > 0
-    ) {
-      try {
-        console.log(
-          "[Superset Auto-Publish] 📊 Graphique détecté. Tentative de publication...",
-        );
-        const defaultDashboardId = parseInt(
-          process.env.SUPERSET_DEFAULT_DASHBOARD_ID || "1",
-          10,
-        );
+    // if (
+    //   !result.isBlocked &&
+    //   output.chartConfig &&
+    //   output.queryResult &&
+    //   output.queryResult.rows &&
+    //   output.queryResult.rows.length > 0
+    // ) {
+    //   try {
+    //     console.log(
+    //       "[Superset Auto-Publish] 📊 Graphique détecté. Tentative de publication...",
+    //     );
+    //     const defaultDashboardId = parseInt(
+    //       process.env.SUPERSET_DEFAULT_DASHBOARD_ID || "1",
+    //       10,
+    //     );
 
-        console.log(
-          `[Superset Auto-Publish] 📌 Graphique détecté. Publication dans le Dashboard ID: ${defaultDashboardId}...`,
-        );
+    //     console.log(
+    //       `[Superset Auto-Publish] 📌 Graphique détecté. Publication dans le Dashboard ID: ${defaultDashboardId}...`,
+    //     );
 
-        const { dimensionColumn, metricColumn } = inferColumns(
-          output.queryResult.columns,
-          output.queryResult.rows[0],
-        );
+    //     const { dimensionColumn, metricColumn } = inferColumns(
+    //       output.queryResult.columns,
+    //       output.queryResult.rows[0],
+    //     );
 
-        console.log(
-          "[DEBUG] SQL envoyé à Superset:",
-          result.validatedSqlQuery || result.lastSqlJson,
-        );
-        console.log(
-          "[DEBUG] Colonnes du résultat exécuté:",
-          output.queryResult.columns,
-        );
+    //     console.log(
+    //       "[DEBUG] SQL envoyé à Superset:",
+    //       result.validatedSqlQuery || result.lastSqlJson,
+    //     );
+    //     console.log(
+    //       "[DEBUG] Colonnes du résultat exécuté:",
+    //       output.queryResult.columns,
+    //     );
 
-        const chartResult = await SupersetService.addChartToDashboard({
-          dashboardId: defaultDashboardId,
-          chartTitle:
-            output.chartConfig?.title?.text ||
-            `Graphique - ${new Date().toLocaleString("fr-FR")}`,
-          // sqlQuery: result.validatedSqlQuery || result.lastSqlJson,
-          sqlQuery:
-            result.executedSqlQuery ||
-            result.validatedSqlQuery ||
-            result.lastSqlJson,
-          vizKind: mapChartTypeToVizKind(output.chartConfig),
-          columns: output.queryResult.columns,
-          metricColumn,
-          dimensionColumn,
-        });
+    //     const chartResult = await SupersetService.addChartToDashboard({
+    //       dashboardId: defaultDashboardId,
+    //       chartTitle:
+    //         output.chartConfig?.title?.text ||
+    //         `Graphique - ${new Date().toLocaleString("fr-FR")}`,
+    //       // sqlQuery: result.validatedSqlQuery || result.lastSqlJson,
+    //       sqlQuery:
+    //         result.executedSqlQuery ||
+    //         result.validatedSqlQuery ||
+    //         result.lastSqlJson,
+    //       vizKind: mapChartTypeToVizKind(output.chartConfig),
+    //       columns: output.queryResult.columns,
+    //       metricColumn,
+    //       dimensionColumn,
+    //     });
 
-        supersetPublish = {
-          success: true,
-          message: "Graphique publié automatiquement dans Superset.",
-          chartId: chartResult?.id,
-        };
+    //     supersetPublish = {
+    //       success: true,
+    //       message: "Graphique publié automatiquement dans Superset.",
+    //       chartId: chartResult?.id,
+    //     };
 
-        console.log(
-          `[Superset Auto-Publish] 🎉 Chart créé avec succès (ID: ${chartResult?.id}).`,
-        );
-      } catch (supersetError: any) {
-        console.error(
-          "[Superset Auto-Publish] ❌ Échec de la publication :",
-          supersetError.message,
-        );
-        supersetPublish = {
-          success: false,
-          message: "Échec de la publication automatique dans Superset.",
-        };
-      }
-    }
+    //     console.log(
+    //       `[Superset Auto-Publish] 🎉 Chart créé avec succès (ID: ${chartResult?.id}).`,
+    //     );
+    //   } catch (supersetError: any) {
+    //     console.error(
+    //       "[Superset Auto-Publish] ❌ Échec de la publication :",
+    //       supersetError.message,
+    //     );
+    //     supersetPublish = {
+    //       success: false,
+    //       message: "Échec de la publication automatique dans Superset.",
+    //     };
+    //   }
+    // }
 
     // ── Gestion du cas où l'agent est bloqué et n'a pas produit de résumé ──
     if (
@@ -367,7 +369,7 @@ export const handleAgentResume = async (
     res.status(200).json({
       status: result.isBlocked ? "blocked" : "completed",
       ...output, // le frontend reçoit des champs plats et directs
-      supersetPublish, // ← ajoute cette ligne
+      // supersetPublish, // ← ajoute cette ligne
       audit: {
         ...audit,
         executionTimeMs,
@@ -560,3 +562,41 @@ export const handlePublishToSuperset = async (
     console.log("=== [Superset] Fin handlePublishToSuperset ===\n");
   }
 };
+
+/////// medias_report section
+export async function getMediaByUser(req: Request, res: Response) {
+  try {
+    const requestedUserId = Number(req.params.userId);
+    const authUser = (req as any).user; // injecté par checkAuth
+
+    // RBAC : un utilisateur ne peut voir que ses propres médias, sauf admin
+    // if (authUser.role !== "admin" && authUser.id !== requestedUserId) {
+    //   return res.status(403).json({ message: "Accès refusé." });
+    // }
+
+    const media = await getUserMedia(requestedUserId);
+    return res.status(200).json(media);
+  } catch (err: any) {
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+export async function deleteMedia(req: Request, res: Response) {
+  try {
+    console.log("[deleteMessage] in deletingMedia");
+    const messageId = Number(req.params.id);
+
+    const authUser = (req as any).user;
+    console.log("[deleteMessage] messageId and authUser", messageId, authUser);
+
+    const success = await hideMessage(messageId, authUser.userId);
+    if (!success) {
+      return res
+        .status(404)
+        .json({ message: "Média introuvable ou non autorisé." });
+    }
+    return res.status(200).json({ message: "Média supprimé." });
+  } catch (err: any) {
+    return res.status(500).json({ message: err.message });
+  }
+}

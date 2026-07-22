@@ -4,6 +4,7 @@ import { authApi } from "../api/authApi";
 import OceanBackground from "../components/home/OceanBackground";
 import LoginCharacter from "../assets/img/auth/business_vision-1.gif";
 import logo from "../assets/logo/logo_png.png";
+import { getUserRoleFromToken } from "../utils/tokenUtils";
 import "../styles/Auth/AuthPages.css";
 import "../styles/Navbar.css";
 
@@ -47,6 +48,12 @@ const LoginPage = () => {
     }
   };
 
+  const handlePostLoginRedirect = () => {
+    const role = getUserRoleFromToken(sessionStorage.getItem("token") || "");
+    const targetPath = role === "admin" ? "/admin" : "/dashboard";
+    handleGo(targetPath);
+  };
+
   return (
     <div className="auth-page auth-page-walk">
       <div className="auth-bg-zone">
@@ -79,7 +86,7 @@ const LoginPage = () => {
                   <button
                     type="button"
                     className="walk-btn-secondary"
-                    onClick={() => handleGo("/dashboard")}
+                    onClick={() => handlePostLoginRedirect()}
                   >
                     Consulter le dashboard
                   </button>

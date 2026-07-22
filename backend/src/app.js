@@ -7,6 +7,9 @@ import agentRoutes from "./routes/agent.routes.js"; // 🆕 AJOUT : Importation 
 import pdfRoutes from "./routes/pdf.export.routes.js"; // 🆕 AJOUT : Importation de tes routes de génération de PDF
 import authRoutes from "./routes/auth.routes.js";
 import commentaireRoutes from "./routes/commentaire.routes.js"; // Importation des routes commentaires
+import adminRoutes from "./routes/admin.routes.js"; // Importation des routes admin
+import roleRoutes from "./routes/role.routes.js"; // Importation des routes de gestion des rôles
+import supersetRoutes from "./routes/superset.routes.js";
 
 dotenv.config();
 
@@ -22,7 +25,7 @@ const PORT = process.env.PORT || 5000;
 app.use(
   cors({
     origin: "*", // ou mieux : ton domaine Vercel exact, ex: "https://ruthystore.vercel.app"
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",
@@ -46,6 +49,11 @@ app.use("/api/agent", agentRoutes);
 app.use("/api/pdf", pdfRoutes);
 // Branchement des routes commentaires
 app.use("/api/commentaires", commentaireRoutes);
+// routes pour l'admin et la gestion des roles utilisateurs
+app.use("/api/admin", adminRoutes);
+app.use("/api/roles", roleRoutes);
+// superset routes
+app.use("api/dashboard/superset", supersetRoutes);
 
 app.listen(PORT, async () => {
   console.log(`\n🚀 Serveur backend démarré sur http://localhost:${PORT}`);

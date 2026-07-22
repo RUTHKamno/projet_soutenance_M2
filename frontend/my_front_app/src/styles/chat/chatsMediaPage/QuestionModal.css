@@ -1,0 +1,42 @@
+/* QuestionModal.css */
+.qmodal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.qmodal-content {
+  background: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 480px;
+  padding: 20px;
+}
+.qmodal-header {
+  display: flex;
+  justify-content: space-between;
+  color: #423d02;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.qmodal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.qmodal-body {
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.qmodal-copy {
+  background: #8a7e03;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}

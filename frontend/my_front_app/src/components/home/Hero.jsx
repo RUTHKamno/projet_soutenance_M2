@@ -1,13 +1,21 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import analyticsImage from "../../assets/img/home/home-analytics-1.png";
-import { hasValidToken } from "../../utils/tokenUtils.js";
+import {
+  hasValidToken,
+  getUserRoleFromStorage,
+} from "../../utils/tokenUtils.js";
 import "../../styles/Hero.css";
 
 const Hero = () => {
   const navigate = useNavigate();
   const authRequired = !hasValidToken();
-  const primaryTarget = authRequired ? "/login" : "/dashboard";
+  const userRole = getUserRoleFromStorage();
+  const primaryTarget = authRequired
+    ? "/login"
+    : userRole === "admin"
+      ? "/admin"
+      : "/dashboard";
 
   const [visible, setVisible] = useState(false);
 

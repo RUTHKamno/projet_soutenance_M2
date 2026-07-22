@@ -1,0 +1,106 @@
+/* MediaViewerModal.css */
+.mviewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.mviewer-content {
+  background: #fff;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.mviewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+.mviewer-title {
+  font-weight: 600;
+  color: #423d02;
+  margin: 0;
+}
+.mviewer-date {
+  font-size: 0.8rem;
+  color: #999;
+}
+.mviewer-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #423d02;
+}
+.mviewer-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+.mviewer-report {
+  line-height: 1.6;
+  color: #333;
+}
+.mviewer-error {
+  text-align: center;
+  color: #999;
+  padding: 40px 0;
+}
+
+.mviewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(138, 126, 3, 0.85);
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  cursor: pointer;
+  z-index: 10;
+}
+.mviewer-prev {
+  left: 10px;
+}
+.mviewer-next {
+  right: 10px;
+}
+.mviewer-nav:hover {
+  background: #423d02;
+}
+
+.mviewer-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-top: 1px solid #eee;
+}
+.mviewer-counter {
+  color: #999;
+  font-size: 0.85rem;
+}
+.mviewer-action-btn {
+  background: #8a7e03;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.mviewer-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

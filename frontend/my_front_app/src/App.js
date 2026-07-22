@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import Layout from "./components/layout/Layout";
 import LoginPage from "./pages/LoginPage";
@@ -7,6 +7,10 @@ import UpdateUserInfo from "./pages/UpdateUserInfo";
 import DashboardPage from "./pages/DashboardPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AProposPage from "./pages/AProposPage";
+import AdminRoute from "./components/auth/AdminRoute";
+import AdminDashboard from "./pages/AdminDashboard";
+import { getUserRoleFromStorage } from "./utils/tokenUtils";
+import ChatMediaPage from "./pages/ChatMediaPage";
 
 function App() {
   return (
@@ -21,8 +25,20 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                {getUserRoleFromStorage() === "admin" ? (
+                  <Navigate to="/admin" replace />
+                ) : (
+                  <DashboardPage />
+                )}
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             }
           />
           {/* <Route path="/chat" element={<ChatPage />} /> */}
@@ -34,6 +50,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* medias chats */}
+          <Route path="/chats/:userId" element={<ChatMediaPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

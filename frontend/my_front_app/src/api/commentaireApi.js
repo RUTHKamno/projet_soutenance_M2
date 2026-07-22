@@ -24,3 +24,26 @@ export const postCommentaire = async (data) => {
   }
   return res.json();
 };
+
+// // ── Commentaires & notations ────────────────────────────────────────────
+// export const getAllComments = async () => {
+//   const res = await fetch(`${API_BASE}/commentaires/admin/all`, {
+//     headers: {
+//       "ngrok-skip-browser-warning": "true",
+//       "Content-Type": "application/json",
+//     },
+//   });
+//   return res.json();
+// };
+
+// export const updateCommentStatus = async (id, statut) => {
+//   const res = await fetch(`${API_BASE}/commentaires/admin/${id}/statut`, {
+//     method: "PATCH",
+//     headers: {
+//       "ngrok-skip-browser-warning": "true",
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify({ statut }),
+//   });
+//   return res.json();
+// };

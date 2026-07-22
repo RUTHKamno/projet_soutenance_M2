@@ -4,6 +4,8 @@ import {
   checkAuth,
 } from "../middlewares/auth.middleware.js";
 import {
+  deleteMedia,
+  getMediaByUser,
   handleAgentAsk,
   handleAgentResume,
   handlePublishToSuperset,
@@ -35,6 +37,10 @@ router.get(
 router.post("/publish-superset", checkAuth, handlePublishToSuperset);
 
 router.get("/dashboard-list", checkAuth, listDatabases);
+
+router.get("/chats/:userId/media", checkAuth, getMediaByUser);
+
+router.delete("/chats/media/:id", checkAuth, deleteMedia);
 
 // router.post("/analyze",checkAuth, handleAgentAnalysis);
 

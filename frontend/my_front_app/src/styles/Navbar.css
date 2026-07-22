@@ -225,6 +225,12 @@
   color: #d15353;
 }
 
+.navProfileAction--medias {
+  margin-top: 10px;
+  /* border-color: #7f8522;
+  color: #7f8522; */
+}
+
 .navProfileAction--logout:hover {
   background: rgba(209, 83, 83, 0.14);
   color: #8a1c1c;

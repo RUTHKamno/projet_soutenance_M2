@@ -9,7 +9,8 @@
     "test-search": "ts-node src/scripts/test_search.ts",
     "test-agent": "npx tsx src/scripts/test_agentic.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "create-admin": "tsx src/scripts/create_admin.ts"
+    "create-admin": "tsx src/scripts/create_admin.ts",
+    "eval:agent": "ts-node scripts/evaluateAgent.ts"
   },
   "keywords": [],
   "author": "",
@@ -46,7 +47,8 @@
     "node-fetch": "^3.3.2",
     "pdfkit": "^0.19.0",
     "pg": "^8.21.0",
-    "tough-cookie": "^6.0.1"
+    "tough-cookie": "^6.0.1",
+    "xlsx": "^0.18.5"
   },
   "overrides": {
     "better-sqlite3": "11.8.0",

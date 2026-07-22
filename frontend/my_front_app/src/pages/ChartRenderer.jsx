@@ -3,6 +3,7 @@ import { authApi } from "../api/authApi";
 import { embedDashboard } from "@superset-ui/embedded-sdk";
 import DashboardStatus from "../components/dashboard/DashboardStatus";
 import "../styles/Dashboard/DashboardRenderer.css"; // Fichier de styles dédié
+import ChartExportToolbar from "../components/dashboard/ChartExportToolbar";
 
 const ChartRenderer = ({ dashboardId }) => {
   const containerRef = useRef(null);
@@ -65,6 +66,7 @@ const ChartRenderer = ({ dashboardId }) => {
     <div className="dashboard-view-container">
       {/* Sous-composant dédié à la gestion des états visuels */}
       <DashboardStatus loading={loading} error={error} />
+      {!loading && !error && <ChartExportToolbar dashboardId={dashboardId} />}
 
       {/* Conteneur physique pour l'Iframe sécurisé Superset */}
       <div

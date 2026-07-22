@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { hasValidToken, clearToken } from "../../utils/tokenUtils.js";
+import {
+  hasValidToken,
+  clearToken,
+  getUserRoleFromStorage,
+} from "../../utils/tokenUtils.js";
 import { authApi } from "../../api/authApi.js";
 import "../../styles/Navbar.css";
 import logo from "../../assets/logo/logo_png.png";
@@ -11,13 +15,25 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const authRequired = !hasValidToken();
+  const userRole = getUserRoleFromStorage();
+  const isAdmin = userRole === "admin";
 
-  const navLinks = [
-    { name: "Accueil", to: "/" },
-    { name: "Dashboards", to: "/dashboard" },
-    // { name: "Chat Analytique", to: "/chat" },
-    { name: "A Propos", to: "/a-propos" },
-  ];
+  // Construction dynamique des liens de navigation
+  const baseLinks = isAdmin
+    ? [
+        { name: "Accueil", to: "/" },
+        { name: "Dashboard", to: "/admin" },
+      ]
+    : [
+        { name: "Accueil", to: "/" },
+        { name: "Dashboards", to: "/dashboard" },
+        { name: "A Propos", to: "/a-propos" },
+      ];
+
+  // On ajoute l'onglet "Mes médias" uniquement si un utilisateur est connecté et possède un id
+  const navLinks = user?.id
+    ? [...baseLinks, { name: "Mes médias", to: `/chats/${user.id}` }]
+    : baseLinks;
 
   const getAvatarLetters = (first, last) => {
     const firstInitial = first?.trim()?.[0] || "";
@@ -72,7 +88,6 @@ const Navbar = () => {
       <div className="topBar">
         <span>📞 +237 654 820 309</span>
         <span>✉️ armelnoah41@beitafricagroup.com</span>
-        {/* <span>🔔 Nouvelle version disponible — Plateforme BI & IA v2.0</span> */}
       </div>
 
       {/* Navbar */}
@@ -161,6 +176,17 @@ const Navbar = () => {
                   }}
                 >
                   Modifier le profil
+                </button>
+
+                <button
+                  type="button"
+                  className="navProfileAction navProfileAction--medias"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    navigate(`/chats/${user.id}`);
+                  }}
+                >
+                  Voir mes médias
                 </button>
                 <button
                   type="button"
