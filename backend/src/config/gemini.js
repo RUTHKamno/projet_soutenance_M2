@@ -16,6 +16,7 @@ if (!geminiKey) {
 const llm = new ChatGoogleGenerativeAI({
   // model: "gemini-2.5-pro",
   model: "gemini-3.1-flash-lite",
+  maxRetries: 2,
   //   model: "gemini-3.1-pro-preview",
   // CRUCIAL : On force LangChain à utiliser l'argument 'apiKey' (ou 'googleApiKey')
   // pour écraser les variables fantômes de l'environnement global Windows.

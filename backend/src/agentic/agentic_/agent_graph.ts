@@ -90,6 +90,7 @@ const toolGenerateSql = tool(
       modelName: "gemini-3.1-flash-lite",
       temperature: 0.0,
       apiKey: process.env.GEMINI_API_KEY,
+      maxRetries: 2, // au lieu du défaut (souvent 6)
     });
     const prompt = `
     Tu es l'Agent SQL de notre architecture décisionnelle de microfinance.
@@ -209,7 +210,7 @@ const toolGenerateSql = tool(
       },
       { role: "user", content: prompt },
     ]);
-    // console.log("SQL généré", response);
+    console.log("SQL généré", response);
     return (response.content as string)
       .trim()
       .replace(/```json|```/g, "")
@@ -258,6 +259,7 @@ const toolGenerateChart = tool(
       modelName: "gemini-3.1-flash-lite",
       temperature: 0.2,
       apiKey: process.env.GEMINI_API_KEY,
+      maxRetries: 2,
     });
     const prompt = `
       Génère une config ECharts pour ce graphique.
@@ -293,6 +295,7 @@ const toolWriteReport = tool(
       modelName: "gemini-3.1-flash-lite",
       temperature: 0.3,
       apiKey: process.env.GEMINI_API_KEY,
+      maxRetries: 2,
     });
     const response = await model.invoke([
       {
@@ -421,6 +424,7 @@ const orchestratorModel = new ChatGoogleGenerativeAI({
   modelName: "gemini-3.1-flash-lite",
   temperature: 0.1,
   apiKey: process.env.GEMINI_API_KEY,
+  maxRetries: 2,
 }).bindTools(ALL_TOOLS);
 
 async function agentNode(
@@ -573,6 +577,7 @@ async function reformulateNode(
     modelName: "gemini-3.1-flash-lite",
     temperature: 0.1, // Réduit à 0.1 pour un meilleur déterminisme
     apiKey: process.env.GEMINI_API_KEY,
+    maxRetries: 2,
   });
 
   console.log("[reformulateNode] ▶️ Entrée dans le noeud", state.userLanguage);

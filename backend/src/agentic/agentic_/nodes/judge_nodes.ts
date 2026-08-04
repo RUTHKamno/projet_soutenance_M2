@@ -11,6 +11,7 @@ export async function judgeNode(
     modelName: "gemini-3.1-flash-lite",
     temperature: 0.0,
     apiKey: process.env.GEMINI_API_KEY,
+    maxRetries: 2,
   });
 
   // On ne fait pas confiance à ce que l'agent prétend avoir comme droits.

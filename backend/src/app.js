@@ -58,7 +58,7 @@ app.use("api/dashboard/superset", supersetRoutes);
 app.listen(PORT, async () => {
   console.log(`\n🚀 Serveur backend démarré sur http://localhost:${PORT}`);
   console.log(
-    "----------------------------------------------------------------",
+    "---------------------------------------------------------------",
   );
 
   // 1. Validation de la base vectorielle locale LanceDB

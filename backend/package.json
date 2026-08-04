@@ -10,7 +10,7 @@
     "test-agent": "npx tsx src/scripts/test_agentic.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "create-admin": "tsx src/scripts/create_admin.ts",
-    "eval:agent": "ts-node scripts/evaluateAgent.ts"
+    "eval_agent_graph": "npx tsx src/scripts/evaluate_agents.ts src/scripts/eval_dataset_1.json"
   },
   "keywords": [],
   "author": "",

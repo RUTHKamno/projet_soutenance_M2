@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import analyticsImage from "../../assets/img/home/home-analytics-1.png";
+import analyticsImage from "../../assets/img/home/home-analytics-6.png";
 import {
   hasValidToken,
   getUserRoleFromStorage,

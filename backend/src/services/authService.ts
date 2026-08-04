@@ -591,6 +591,7 @@ export const AuthService = {
             "[supersetDashboard]",
             numericDashboardId,
           );
+          console.log("[Superset] appel dataset RLS...");
           rlsClauses = await buildRlsClauses(
             numericDashboardId,
             user.agence,
@@ -607,6 +608,7 @@ export const AuthService = {
           }
         }
       }
+      console.log("[Superset] appel login...");
       const loginResponse = await axios.post(
         `${SUPERSET_URL}/api/v1/security/login`,
         {
@@ -616,7 +618,7 @@ export const AuthService = {
         },
       );
       const guestAccessToken = loginResponse.data.access_token;
-
+      console.log("[Superset] appel guest_token...");
       const guestTokenResponse = await axios.post(
         `${SUPERSET_URL}/api/v1/security/guest_token/`,
         {

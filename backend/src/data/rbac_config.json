@@ -13,7 +13,8 @@
         "dwh.dim_dossier_credit",
         "dwh.dim_profil",
         "dwh.dim_opposition",
-        "dwh.dim_organisme"
+        "dwh.dim_organisme",
+        "dwh.dim_temps"
       ],
       "colonnes_interdites": [],
       "filtres_obligatoires": {}
@@ -26,13 +27,15 @@
         "dwh.fait_portefeuille_comptes",
         "dwh.dim_client",
         "dwh.dim_gestionnaire",
-        "dwh.dim_agence"
+        "dwh.dim_agence",
+        "dwh.dim_temps"
       ],
       "colonnes_interdites": ["teg", "taux_interet"],
       "filtres_obligatoires": {
         "dwh.fait_encours_credit": "age = '{agence_utilisateur}'",
         "dwh.fait_mep": "agence = '{agence_utilisateur}'",
-        "dwh.fait_portefeuille_comptes": "age = '{agence_utilisateur}'"
+        "dwh.fait_portefeuille_comptes": "age = '{agence_utilisateur}'",
+        "dwh.fait_decaissements": "age = '{agence_utilisateur}'"
       }
     },
     "analyste": {
@@ -44,7 +47,9 @@
         "dwh.dim_client",
         "dwh.dim_gestionnaire",
         "dwh.dim_agence",
-        "dwh.dim_produit"
+        "dwh.dim_produit",
+        "dwh.fait_encours_credit",
+        "dwh.dim_temps"
       ],
       "colonnes_interdites": ["telephone", "teg"],
       "filtres_obligatoires": {}
