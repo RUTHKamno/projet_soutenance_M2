@@ -779,7 +779,7 @@ function summarizeCacheComparison(results: EvalResult[], cases: EvalCase[]) {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
-  const datasetPath = process.argv[2] || "scripts/eval_dataset.json";
+  const datasetPath = process.argv[2] || "scripts/eval_dataset_1.json";
   const outputPath =
     process.argv[3] || `scripts/eval_report_${Date.now()}.json`;
 

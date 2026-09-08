@@ -65,6 +65,14 @@ export const AgentState = Annotation.Root({
     reducer: (_current, update) => update,
     default: () => false,
   }),
+  isOutOfScope: Annotation<boolean>({
+    reducer: (_current, update) => update,
+    default: () => false,
+  }),
+  isJailbreak: Annotation<boolean>({
+    reducer: (_current, update) => update,
+    default: () => false,
+  }),
   humanValidated: Annotation<boolean>({
     reducer: (_current, update) => update,
     default: () => false,

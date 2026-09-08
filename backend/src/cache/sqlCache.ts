@@ -165,7 +165,7 @@ export async function getCacheSemantic(
     const raw = await redisClient.get(match.redisKey);
     if (!raw) {
       console.log(
-        `[Cache] ❌ Question similaire trouvée ("${match.question}") mais entrée Redis expirée/absente.`,
+        `[Cache] ❌ Question similaire trouvée ("${match.question}") mais entrée Redis expirée/absente (key: ${match.redisKey}).`,
       );
       return null;
     }

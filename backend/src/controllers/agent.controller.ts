@@ -31,15 +31,22 @@ export const handleAgentAsk = async (
   const contextInfo = req.user!.contextInfo;
   const agence = contextInfo?.agence_utilisateur ?? null;
 
-  if (!question || !role || !contextInfo) {
+  if (
+    typeof question !== "string" ||
+    !question.trim() ||
+    !role ||
+    !contextInfo
+  ) {
     res.status(400).json({ success: false, error: "Paramètres manquants." });
     return;
   }
 
+  const normalizedQuestion = question.toLowerCase();
+
   const thread_id = uuidv4();
   const config = { configurable: { thread_id } };
   console.log(
-    `\n[API /ask] 📥 Question : "${question}" | thread_id : ${thread_id}`,
+    `\n[API /ask] 📥 Question : "${normalizedQuestion}" | thread_id : ${thread_id}`,
   );
 
   const SYSTEM_PROMPT = `...`; // inchangé
@@ -51,7 +58,7 @@ export const handleAgentAsk = async (
       userId,
       userRole: role,
       role: "user",
-      content: question,
+      content: normalizedQuestion,
       agence,
       language,
     });
@@ -70,9 +77,9 @@ export const handleAgentAsk = async (
       {
         messages: [
           ...contextMessages, // historique des échanges précédents en premier
-          new HumanMessage(question), // la vraie question de l'utilisateur en dernier
+          new HumanMessage(normalizedQuestion), // la vraie question de l'utilisateur en dernier
         ],
-        userQuestion: question,
+        userQuestion: normalizedQuestion,
         userRole: role,
         userLanguage: language,
         userContextInfo: contextInfo,

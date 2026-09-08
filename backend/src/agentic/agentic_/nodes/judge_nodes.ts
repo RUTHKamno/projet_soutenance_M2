@@ -1,17 +1,19 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOllama } from "@langchain/ollama";
 import { AIMessage, ToolMessage } from "@langchain/core/messages";
 import { AgentStateType } from "../agent_state.js";
 import { JudgeResponse } from "../../../interfaces/judge.types.js";
 import { getSecurityConstraints } from "../../rbacService.js";
+import { setCacheEntry } from "../../../cache/sqlCache.js";
 
 export async function judgeNode(
   state: AgentStateType,
 ): Promise<Partial<AgentStateType>> {
-  const model = new ChatGoogleGenerativeAI({
-    modelName: "gemini-3.1-flash-lite",
+  const model = new ChatOllama({
+    baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
+    model: process.env.OLLAMA_MODEL || "qwen2.5:7b",
     temperature: 0.0,
-    apiKey: process.env.GEMINI_API_KEY,
-    maxRetries: 2,
+    format: "json", // Force Ollama à générer du JSON strict si supporté par le modèle
   });
 
   // On ne fait pas confiance à ce que l'agent prétend avoir comme droits.
@@ -115,6 +117,22 @@ export async function judgeNode(
           parsedSqlJson.sql ||
           parsedSqlJson[0]?.query ||
           "";
+
+        const visualisation =
+          parsedSqlJson.queries?.[0]?.visualisation || "text_report";
+
+        // Mise en cache DÉTERMINISTE — ne dépend plus de l'orchestrateur
+        if (sqlBrutValide) {
+          await setCacheEntry({
+            userQuestion: state.reformulatedQuestion || state.userQuestion,
+            role: state.userRole,
+            agence: state.userContextInfo?.agence_utilisateur,
+            sql: sqlBrutValide,
+            visualisation,
+            data: [],
+          });
+          console.log("[judgeNode] Mise en cache automatique effectuée.");
+        }
       } catch (e) {
         console.warn(
           "[JudgeNode] Impossible de parser lastSqlJson pour en extraire le SQL brut.",

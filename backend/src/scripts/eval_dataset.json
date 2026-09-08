@@ -24,7 +24,7 @@
   {
     "id": "q04_hors_contexte_calcul",
     "category": "hors_contexte",
-    "question": "Combien font 2 + 2 ?",
+    "question": "quelle est la capitale de la France ?",
     "role": "analyste",
     "contextInfo": {}
   },

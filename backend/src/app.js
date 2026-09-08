@@ -2,7 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { getLanceDB } from "./config/lancedb.js";
-import { llm } from "./config/gemini.js"; // Notre instance LangChain
+// import { llm } from "./config/gemini.js"; // Notre instance LangChain
+import { llm } from "./config/ollama_client.js"; // Notre instance LangChain
 import agentRoutes from "./routes/agent.routes.js"; // 🆕 AJOUT : Importation de tes nouvelles routes
 import pdfRoutes from "./routes/pdf.export.routes.js"; // 🆕 AJOUT : Importation de tes routes de génération de PDF
 import authRoutes from "./routes/auth.routes.js";
@@ -13,12 +14,6 @@ import supersetRoutes from "./routes/superset.routes.js";
 
 dotenv.config();
 
-console.log(
-  "Clé détectée par Node :",
-  process.env.GEMINI_API_KEY
-    ? process.env.GEMINI_API_KEY.substring(0, 10) + "..."
-    : "AUCUNE CLÉ",
-);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -43,9 +38,9 @@ app.get("/api/health", (req, res) => {
     message: "Le serveur du RAG est opérationnel avec LangChain",
   });
 });
-// 🆕 AJOUT : Branchement de tes routes d'analyse IA sous le préfixe /api/agent
+// AJOUT : Branchement de tes routes d'analyse IA sous le préfixe /api/agent
 app.use("/api/agent", agentRoutes);
-// 🆕 AJOUT : Branchement de tes routes de génération de pdf
+// AJOUT : Branchement de tes routes de génération de pdf
 app.use("/api/pdf", pdfRoutes);
 // Branchement des routes commentaires
 app.use("/api/commentaires", commentaireRoutes);
@@ -56,39 +51,34 @@ app.use("/api/roles", roleRoutes);
 app.use("api/dashboard/superset", supersetRoutes);
 
 app.listen(PORT, async () => {
-  console.log(`\n🚀 Serveur backend démarré sur http://localhost:${PORT}`);
+  console.log(`\nServeur backend démarré sur http://localhost:${PORT}`);
   console.log(
     "---------------------------------------------------------------",
   );
-
   // 1. Validation de la base vectorielle locale LanceDB
   try {
-    console.log("⏳ Vérification de LanceDB...");
+    console.log("Vérification de LanceDB...");
     await getLanceDB();
   } catch (err) {
-    console.error("🚨 Échec du test d'architecture LanceDB !");
+    console.error("Échec du test d'architecture LanceDB !");
   }
 
-  // 2. Validation de la connexion à Gemini 3.1 Pro via LangChain
+  // 2. Validation de la connexion à qwen2.5:7b via LangChain
   try {
-    console.log("⏳ Test de connexion à Gemini 3.1 Pro (via LangChain)...");
-
+    // console.log("Test de connexion à qwen2.5:7b (via LangChain)...");
+    console.log("Test de connexion à qwen2.5:7b (via LangChain)...");
     // Utilisation de la méthode invoke() standard de LangChain
     const response = await llm.invoke(
-      'Dis simplement "Connexion LangChain + Gemini OK" si tu reçois ce message.',
+      'Dis simplement "Connexion Langchain - qwen2.5:7b OK" si tu reçois ce message.',
     );
 
-    console.log(`🤖 Réponse de Gemini : ${response.content.trim()}`);
+    console.log(`Réponse de Ollama : ${response.content}`);
+
     console.log(
-      "----------------------------------------------------------------",
-    );
-    console.log(
-      "✅ TOUS LES VOYANTS SONT AU VERT ! L'architecture LangChain est validée.",
+      "TOUS LES VOYANTS SONT AU VERT ! L'architecture LangChain est validée.",
     );
   } catch (err) {
-    console.error(
-      "🚨 Échec de la connexion à Gemini via LangChain. Vérifie ta clé GEMINI_API_KEY.",
-    );
+    console.error("Échec de la connexion à qwen2.5:7b via LangChain.");
     console.error(err.message);
   }
 });

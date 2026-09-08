@@ -45,7 +45,7 @@
       "question": "Génère la tendance chronologique de l'activité MEP vs Décaissements.",
       "sql": "SELECT dt.date_val AS DateOperation, SUM(CASE WHEN flux.type_flux = 'MEP' THEN flux.montant ELSE 0 END) AS Total_MEP, SUM(CASE WHEN flux.type_flux = 'DEC' THEN flux.montant ELSE 0 END) AS Total_Decaisse FROM dwh.dim_temps dt INNER JOIN (SELECT date_id_mep AS date_id, montant_mep AS montant, 'MEP' AS type_flux FROM dwh.fait_mep UNION ALL SELECT date_id_decaissement AS date_id, montant_decaissement AS montant, 'DEC' AS type_flux FROM dwh.fait_decaissements) flux ON dt.date_id = flux.date_id GROUP BY dt.date_val ORDER BY dt.date_val ASC;"
     },
-    
+
     {
       "id": "triplet_ext_002_1",
       "type": "triplet_fewshot",
@@ -233,7 +233,7 @@
       "intention": "valeur_unique",
       "visualisation": "table",
       "question": "Quels sont les clients ayant effectué des décaissements mais dont le dossier indique un défaut de signature ?",
-      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
     },
     {
       "id": "triplet_ext_006_2",
@@ -242,7 +242,7 @@
       "intention": "valeur_unique",
       "visualisation": "table",
       "question": "Sors-moi la liste de contrôle des comptes qui ont retiré des fonds sans signature valide.",
-      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
     },
     {
       "id": "triplet_ext_006_3",
@@ -251,7 +251,7 @@
       "intention": "valeur_unique",
       "visualisation": "table",
       "question": "Détecte les anomalies de dossiers : décaissements actifs sur signatures absentes ou invalides.",
-      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
     },
     {
       "id": "triplet_ext_006_4",
@@ -260,7 +260,7 @@
       "intention": "valeur_unique",
       "visualisation": "table",
       "question": "Qui a décaissé sans avoir signé correctement son contrat ? Donne-moi leurs contacts.",
-      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
     },
     {
       "id": "triplet_ext_006_5",
@@ -269,7 +269,7 @@
       "intention": "valeur_unique",
       "visualisation": "table",
       "question": "Audit des crédits décaissés : lister les codes clients en anomalie de signature.",
-      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'o';"
+      "sql": "SELECT DISTINCT f.cli AS CLI, c.telephone AS Telephone FROM dwh.fait_decaissements f LEFT JOIN dwh.dim_client c ON f.cli = c.cli WHERE c.signature IS NULL OR c.signature != 'O';"
     },
     {
       "id": "triplet_ext_007_1",
@@ -531,7 +531,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Donne-moi la liste des clients qui ont une pièce d'identité expirée et qui ont encore un crédit en cours.",
-      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, ABS(e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, (e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
     },
     {
       "id": "triplet_ext_020_2",
@@ -540,7 +540,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels emprunteurs actifs ont un document KYC périmé ? Je veux leur nom et leur encours.",
-      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, ABS(e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, (e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
     },
     {
       "id": "triplet_ext_020_3",
@@ -549,7 +549,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Sors-moi le registre de conformité KYC : clients en crédit avec pièce d'identité non valide.",
-      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, ABS(e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, c.etat_piece_identite, (e.encours) AS encours_actuel FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.etat_piece_identite LIKE '%Expire%' AND e.encours < 0 ORDER BY encours_actuel DESC;"
     },
     {
       "id": "triplet_ext_021_1",
@@ -567,7 +567,7 @@
       "intention": "valeur_unique",
       "visualisation": "big_number_total",
       "question": "Quel est le volume d'encours exposé sur des clients dont la pièce d'identité est périmée ?",
-      "sql": "SELECT ABS(SUM(e.encours)) AS encours_kyc_non_conforme FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.etat_piece_identite LIKE '%Expire%';"
+      "sql": "SELECT (SUM(e.encours)) AS encours_kyc_non_conforme FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.etat_piece_identite LIKE '%Expire%';"
     },
 
     {
@@ -595,7 +595,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Donne-moi la liste des clients en impayés qui n'ont pas de numéro de téléphone renseigné.",
-      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.type_client, ABS(e.impayes) AS montant_impaye FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.telephone IS NULL AND e.impayes < 0 ORDER BY montant_impaye DESC;"
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.type_client, (e.impayes) AS montant_impaye FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE c.telephone IS NULL AND e.impayes < 0 ORDER BY montant_impaye DESC;"
     },
 
     {
@@ -605,7 +605,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels sont nos 20 plus gros clients en termes d'encours de crédit ?",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, ABS(SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, (SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
     },
     {
       "id": "triplet_ext_026_2",
@@ -614,7 +614,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Identifie les clients qui concentrent le plus de risque dans notre portefeuille.",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, ABS(SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, (SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
     },
     {
       "id": "triplet_ext_027_1",
@@ -623,7 +623,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels clients représentent à eux seuls plus de 80% de notre book de crédit ?",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, ABS(SUM(e.encours)) AS encours_total, ROUND(ABS(SUM(e.encours)) / SUM(ABS(SUM(e.encours))) OVER () * 100, 2) AS pct_portefeuille FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.type_client, (SUM(e.encours)) AS encours_total, ROUND((SUM(e.encours)) / SUM((SUM(e.encours))) OVER () * 100, 2) AS pct_portefeuille FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli GROUP BY c.cli, c.raison_sociale, c.type_client ORDER BY encours_total DESC LIMIT 20;"
     },
 
     {
@@ -633,7 +633,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Donne-moi la liste des clients qui ont à la fois un impayé et un compte d'épargne actif chez nous.",
-      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, ABS(e.impayes) AS montant_impaye, p.solde AS solde_epargne FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli WHERE e.impayes < 0 AND p.type_cpt = 'Epargne' AND p.solde > 0 ORDER BY montant_impaye DESC;"
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, (e.impayes) AS montant_impaye, p.solde AS solde_epargne FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli WHERE e.impayes < 0 AND p.type_cpt = 'Epargne' AND p.solde > 0 ORDER BY montant_impaye DESC;"
     },
     {
       "id": "triplet_ext_028_2",
@@ -680,7 +680,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Liste-moi les clients qui ont un compte sous opposition et un crédit actif simultanément.",
-      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, p.compte AS compte_bloque, o.lib1 AS type_opposition, ABS(e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.dim_opposition o ON p.compte = o.compte JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE p.flag_opposition = 'O' AND e.encours < 0 ORDER BY encours_credit DESC;"
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, p.compte AS compte_bloque, o.lib1 AS type_opposition, (e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.dim_opposition o ON p.compte = o.compte JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE p.flag_opposition = 'O' AND e.encours < 0 ORDER BY encours_credit DESC;"
     },
     {
       "id": "triplet_cli_012_2",
@@ -727,7 +727,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Qui sont les clients avec le plus d'ancienneté dans notre base et quel est leur niveau d'engagement actuel ?",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.date_naissance, c.age_client, c.type_client, COUNT(DISTINCT p.compte) AS nb_comptes, ABS(SUM(e.encours)) AS encours_total FROM dwh.dim_client c LEFT JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli LEFT JOIN dwh.fait_encours_credit e ON c.cli = e.cli GROUP BY c.cli, c.raison_sociale, c.date_naissance, c.age_client, c.type_client ORDER BY c.date_naissance ASC NULLS LAST LIMIT 20;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.date_naissance, c.age_client, c.type_client, COUNT(DISTINCT p.compte) AS nb_comptes, (SUM(e.encours)) AS encours_total FROM dwh.dim_client c LEFT JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli LEFT JOIN dwh.fait_encours_credit e ON c.cli = e.cli GROUP BY c.cli, c.raison_sociale, c.date_naissance, c.age_client, c.type_client ORDER BY c.date_naissance ASC NULLS LAST LIMIT 20;"
     },
 
     {
@@ -756,7 +756,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels clients ont un encours de crédit mais dont le compte courant affiche un solde créditeur insuffisant pour couvrir une échéance ?",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, p.solde AS solde_compte_courant, d.montant_echeance, ABS(e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.dim_dossier_credit d ON c.cli = d.cli WHERE p.type_cpt IN ('Salaries/Pensionnes', 'E/se') AND p.solde < d.montant_echeance AND e.encours < 0 ORDER BY p.solde ASC LIMIT 30;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, p.solde AS solde_compte_courant, d.montant_echeance, (e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.dim_dossier_credit d ON c.cli = d.cli WHERE p.type_cpt IN ('Salaries/Pensionnes', 'E/se') AND p.solde < d.montant_echeance AND e.encours < 0 ORDER BY p.solde ASC LIMIT 30;"
     },
     {
       "id": "triplet_cli_016_2",
@@ -775,7 +775,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Donne-moi la liste des clients apparentés qui ont un crédit en cours avec leur montant d'encours.",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, pr.libelle AS profil, ABS(e.encours) AS encours_actuel, e.type_encours FROM dwh.dim_client c JOIN dwh.dim_cli_profil cp ON c.cli = cp.cli JOIN dwh.dim_profil pr ON cp.pro = pr.pro JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE pr.apparente = 'Oui' AND e.encours < 0 ORDER BY encours_actuel DESC;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, pr.libelle AS profil, (e.encours) AS encours_actuel, e.type_encours FROM dwh.dim_client c JOIN dwh.dim_cli_profil cp ON c.cli = cp.cli JOIN dwh.dim_profil pr ON cp.pro = pr.pro JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE pr.apparente = 'Oui' AND e.encours < 0 ORDER BY encours_actuel DESC;"
     },
     {
       "id": "triplet_cli_017_2",
@@ -784,7 +784,7 @@
       "intention": "valeur_unique",
       "visualisation": "big_number_total",
       "question": "Quel est l'encours total accordé au personnel interne et aux clients apparentés à la banque ?",
-      "sql": "SELECT ABS(SUM(e.encours)) AS encours_apparentes FROM dwh.fait_encours_credit e JOIN dwh.dim_cli_profil cp ON e.cli = cp.cli JOIN dwh.dim_profil pr ON cp.pro = pr.pro WHERE pr.apparente = 'Oui';"
+      "sql": "SELECT (SUM(e.encours)) AS encours_apparentes FROM dwh.fait_encours_credit e JOIN dwh.dim_cli_profil cp ON e.cli = cp.cli JOIN dwh.dim_profil pr ON cp.pro = pr.pro WHERE pr.apparente = 'Oui';"
     },
 
     {
@@ -794,7 +794,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels clients ont des impayés classés en créances irrécouvrables ? Donne-moi leurs coordonnées et le montant.",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, e.age AS agence, ABS(e.creances_irrecouvrables) AS montant_irrecouvrable FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE e.creances_irrecouvrables < 0 ORDER BY montant_irrecouvrable DESC;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, e.age AS agence, (e.creances_irrecouvrables) AS montant_irrecouvrable FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE e.creances_irrecouvrables < 0 ORDER BY montant_irrecouvrable DESC;"
     },
     {
       "id": "triplet_cli_018_2",
@@ -803,7 +803,7 @@
       "intention": "valeur_unique",
       "visualisation": "big_number_total",
       "question": "Quel est le montant total que nous risquons de passer en perte sur les créances irrécouvrables ?",
-      "sql": "SELECT ABS(SUM(creances_irrecouvrables)) AS total_risque_perte FROM dwh.fait_encours_credit WHERE creances_irrecouvrables < 0;"
+      "sql": "SELECT (SUM(creances_irrecouvrables)) AS total_risque_perte FROM dwh.fait_encours_credit WHERE creances_irrecouvrables < 0;"
     },
     {
       "id": "triplet_cli_018_3",
@@ -812,7 +812,7 @@
       "intention": "comparaison",
       "visualisation": "echarts_timeseries_bar",
       "question": "Par agence, quel est le montant des créances irrécouvrables à risque de passage en perte ?",
-      "sql": "SELECT age AS agence, ABS(SUM(creances_irrecouvrables)) AS montant_irrecouvrable FROM dwh.fait_encours_credit WHERE creances_irrecouvrables < 0 GROUP BY age ORDER BY montant_irrecouvrable DESC;"
+      "sql": "SELECT age AS agence, (SUM(creances_irrecouvrables)) AS montant_irrecouvrable FROM dwh.fait_encours_credit WHERE creances_irrecouvrables < 0 GROUP BY age ORDER BY montant_irrecouvrable DESC;"
     },
 
     {
@@ -841,7 +841,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels clients de type Entreprise ont un encours de crédit supérieur à 50 millions de FCFA ?",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, e.age AS agence, ABS(SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.type_client = 'E/se' GROUP BY c.cli, c.raison_sociale, e.age HAVING ABS(SUM(e.encours)) > 50000000 ORDER BY encours_total DESC;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, e.age AS agence, (SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.type_client = 'E/se' GROUP BY c.cli, c.raison_sociale, e.age HAVING (SUM(e.encours)) > 50000000 ORDER BY encours_total DESC;"
     },
     {
       "id": "triplet_cli_020_2",
@@ -850,7 +850,7 @@
       "intention": "valeur_unique",
       "visualisation": "big_number_total",
       "question": "Combien d'entreprises clientes ont un encours supérieur à 50 millions ?",
-      "sql": "SELECT COUNT(DISTINCT e.cli) AS nb_entreprises_gros_encours FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.type_client = 'E/se' GROUP BY e.cli HAVING ABS(SUM(e.encours)) > 50000000;"
+      "sql": "SELECT COUNT(DISTINCT e.cli) AS nb_entreprises_gros_encours FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli WHERE c.type_client = 'E/se' GROUP BY e.cli HAVING (SUM(e.encours)) > 50000000;"
     },
 
     {
@@ -860,7 +860,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels clients domiciliés chez un organisme précis comme CAMTEL ont un crédit en cours ?",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, o.organisme AS employeur, c.telephone, ABS(e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.dim_organisme o ON c.cli = o.cli JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE o.organisme ILIKE '%CAMTEL%' AND e.encours < 0 ORDER BY encours_credit DESC;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, o.organisme AS employeur, c.telephone, (e.encours) AS encours_credit FROM dwh.dim_client c JOIN dwh.dim_organisme o ON c.cli = o.cli JOIN dwh.fait_encours_credit e ON c.cli = e.cli WHERE o.organisme ILIKE '%CAMTEL%' AND e.encours < 0 ORDER BY encours_credit DESC;"
     },
     {
       "id": "triplet_cli_021_2",
@@ -869,7 +869,7 @@
       "intention": "comparaison",
       "visualisation": "echarts_timeseries_bar",
       "question": "Compare l'encours de crédit par organisme employeur pour les 10 plus représentés.",
-      "sql": "SELECT o.organisme, COUNT(DISTINCT e.cli) AS nb_emprunteurs, ABS(SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_organisme o ON e.cli = o.cli WHERE e.encours < 0 GROUP BY o.organisme ORDER BY encours_total DESC LIMIT 10;"
+      "sql": "SELECT o.organisme, COUNT(DISTINCT e.cli) AS nb_emprunteurs, (SUM(e.encours)) AS encours_total FROM dwh.fait_encours_credit e JOIN dwh.dim_organisme o ON e.cli = o.cli WHERE e.encours < 0 GROUP BY o.organisme ORDER BY encours_total DESC LIMIT 10;"
     },
     {
       "id": "triplet_cli_021_3",
@@ -878,7 +878,7 @@
       "intention": "repartition",
       "visualisation": "pie",
       "question": "Quelle est la répartition de notre encours crédit selon l'organisme employeur du client ?",
-      "sql": "SELECT o.organisme, ABS(SUM(e.encours)) AS encours_organisme FROM dwh.fait_encours_credit e JOIN dwh.dim_organisme o ON e.cli = o.cli WHERE e.encours < 0 GROUP BY o.organisme ORDER BY encours_organisme DESC LIMIT 10;",
+      "sql": "SELECT o.organisme, (SUM(e.encours)) AS encours_organisme FROM dwh.fait_encours_credit e JOIN dwh.dim_organisme o ON e.cli = o.cli WHERE e.encours < 0 GROUP BY o.organisme ORDER BY encours_organisme DESC LIMIT 10;",
       "roles_autorises": ["direction_generale", "analyste"]
     },
 
@@ -889,7 +889,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels clients ont un contentieux actif et quel gestionnaire en est responsable ?",
-      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, g.nom_gestionnaire AS gestionnaire, ABS(e.creances_contentieuses) AS montant_contentieux, e.age AS agence FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli JOIN dwh.dim_gestionnaire g ON e.gestionnaire_id = g.id_gestionnaire WHERE e.creances_contentieuses < 0 ORDER BY montant_contentieux DESC;"
+      "sql": "SELECT c.cli, c.raison_sociale AS NomClient, c.telephone, g.nom_gestionnaire AS gestionnaire, (e.creances_contentieuses) AS montant_contentieux, e.age AS agence FROM dwh.fait_encours_credit e JOIN dwh.dim_client c ON e.cli = c.cli JOIN dwh.dim_gestionnaire g ON e.gestionnaire_id = g.id_gestionnaire WHERE e.creances_contentieuses < 0 ORDER BY montant_contentieux DESC;"
     },
     {
       "id": "triplet_cli_022_2",
@@ -898,7 +898,7 @@
       "intention": "valeur_unique",
       "visualisation": "big_number_total",
       "question": "Quel est le montant total des créances actuellement en phase contentieuse ?",
-      "sql": "SELECT ABS(SUM(creances_contentieuses)) AS total_contentieux FROM dwh.fait_encours_credit WHERE creances_contentieuses < 0;"
+      "sql": "SELECT (SUM(creances_contentieuses)) AS total_contentieux FROM dwh.fait_encours_credit WHERE creances_contentieuses < 0;"
     },
 
     {
@@ -927,7 +927,7 @@
       "intention": "classement",
       "visualisation": "table",
       "question": "Quels clients cumulent impayés ET compte sous opposition ? Ce sont nos cas les plus critiques.",
-      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, ABS(e.impayes) AS montant_impaye, o.lib1 AS type_opposition, o.ddeb AS debut_opposition FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.dim_opposition o ON p.compte = o.compte WHERE e.impayes < 0 AND p.flag_opposition = 'O' ORDER BY montant_impaye DESC;"
+      "sql": "SELECT DISTINCT c.cli, c.raison_sociale AS NomClient, c.telephone, (e.impayes) AS montant_impaye, o.lib1 AS type_opposition, o.ddeb AS debut_opposition FROM dwh.dim_client c JOIN dwh.fait_encours_credit e ON c.cli = e.cli JOIN dwh.fait_portefeuille_comptes p ON c.cli = p.cli JOIN dwh.dim_opposition o ON p.compte = o.compte WHERE e.impayes < 0 AND p.flag_opposition = 'O' ORDER BY montant_impaye DESC;"
     },
     {
       "id": "triplet_cli_024_2",

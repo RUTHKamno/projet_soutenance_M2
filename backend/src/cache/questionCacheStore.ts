@@ -68,7 +68,7 @@ export async function indexCachedQuestion(params: {
       },
     ]);
     console.log(
-      `[QuestionCacheStore] 💾 Question indexée : "${params.question}"`,
+      `[QuestionCacheStore] 💾 Question indexée : "${params.question}" (redisKey: ${params.redisKey})`,
     );
   } catch (err) {
     console.error("[QuestionCacheStore] ❌ Erreur indexation :", err);

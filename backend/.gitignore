@@ -1,0 +1,14 @@
+venv
+.py
+.sqlite3
+node_modules
+.env
+.txt
+.sql
+data
+db
+models
+\models
+\db
+\data
+\node_modules
